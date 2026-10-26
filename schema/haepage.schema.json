@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/haelahpx/haepage/schema/haepage.schema.json",
+  "title": "Haepage config (haepage.json)",
+  "description": "Unknown fields are allowed and kept on save, so files stay compatible across versions.",
+  "type": "object",
+  "required": ["version"],
+  "properties": {
+    "version": { "const": 1 },
+    "settings": {
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "theme": { "type": "string", "description": "Built-in or installed theme id, or an https:// URL" },
+        "scheme": { "enum": ["auto", "light", "dark"] },
+        "fx": { "enum": ["auto", "full", "balanced", "lite"] },
+        "search": { "type": "string", "description": "Default search engine id" },
+        "customCss": { "type": "string" },
+        "inbox": { "enum": ["inbox", "auto"] }
+      }
+    },
+    "groups": { "type": "array", "items": { "$ref": "#/$defs/group" } },
+    "services": { "type": "array", "items": { "$ref": "#/$defs/service" } },
+    "overrides": {
+      "type": "object",
+      "description": "Keyed by identity key, e.g. docker:<project>/<service>",
+      "additionalProperties": { "$ref": "#/$defs/override" }
+    },
+    "layout": {
+      "type": "object",
+      "properties": {
+        "type": { "const": "grid" },
+        "columns": { "anyOf": [{ "const": "auto" }, { "type": "integer", "minimum": 1 }] },
+        "profiles": {
+          "type": "object",
+          "additionalProperties": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "widgets": { "type": "array", "items": { "$ref": "#/$defs/widget" } },
+    "engines": { "type": "array", "items": { "$ref": "#/$defs/engine" } },
+    "bookmarks": { "type": "array", "items": { "$ref": "#/$defs/bookmark" } }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+    "urls": {
+      "type": "object",
+      "minProperties": 1,
+      "properties": {
+        "lan": { "type": "string" },
+        "tailscale": { "type": "string" },
+        "public": { "type": "string" }
+      }
+    },
+    "check": {
+      "type": "object",
+      "properties": {
+        "type": { "enum": ["http", "tcp", "none"] },
+        "expect": { "type": "integer", "minimum": 100, "maximum": 599 },
+        "interval": { "type": "integer", "minimum": 5 },
+        "path": { "type": "string" },
+        "insecure": { "type": "boolean" }
+      }
+    },
+    "group": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string" },
+        "order": { "type": "integer" },
+        "icon": { "type": "string" },
+        "collapsed": { "type": "boolean" }
+      }
+    },
+    "service": {
+      "type": "object",
+      "required": ["id", "name", "urls"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string" },
+        "group": { "type": "string" },
+        "icon": { "type": "string" },
+        "description": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "urls": { "$ref": "#/$defs/urls" },
+        "check": { "$ref": "#/$defs/check" },
+        "public": { "type": "boolean" }
+      }
+    },
+    "override": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "icon": { "type": "string" },
+        "group": { "type": "string" },
+        "urls": { "$ref": "#/$defs/urls" },
+        "pinned": { "type": "boolean" },
+        "hidden": { "type": "boolean" }
+      }
+    },
+    "widget": {
+      "type": "object",
+      "required": ["id", "type"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "type": {
+          "type": "string",
+          "pattern": "^(clock|weather|system|bookmarks|notes|todo|rss|calendar|releases|api|custom:[a-z0-9-]+)$"
+        },
+        "title": { "type": "string" },
+        "area": { "type": "string" },
+        "refresh": { "type": "integer", "minimum": 1 },
+        "options": { "type": "object" }
+      }
+    },
+    "engine": {
+      "type": "object",
+      "required": ["id", "prefix", "url"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string" },
+        "prefix": { "type": "string", "pattern": "^[a-z0-9]+$" },
+        "url": { "type": "string", "pattern": "%s" }
+      }
+    },
+    "bookmark": {
+      "type": "object",
+      "required": ["name", "url"],
+      "properties": {
+        "name": { "type": "string" },
+        "url": { "type": "string" },
+        "group": { "type": "string" },
+        "icon": { "type": "string" }
+      }
+    }
+  }
+}

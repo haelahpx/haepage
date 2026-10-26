@@ -1,0 +1,17 @@
+{
+  "name": "haepage-web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node --test",
+    "validate": "node scripts/validate.mjs"
+  },
+  "dependencies": {
+    "preact": "^10.25.4"
+  },
+  "devDependencies": {
+    "ajv": "^8.17.1",
+    "esbuild": "^0.24.2"
+  }
+}

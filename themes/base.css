@@ -1,0 +1,186 @@
+/* Haepage base styles: layout and defaults shared by every theme.
+   Themes set variables and style hp- classes; layout lives here.
+   Contract: docs/theme-api.md (theme-api 1). */
+
+:root {
+  --accent: #3b82f6;
+  --on-accent: #ffffff;
+  --bg: #f5f5f7;
+  --surface: #ffffff;
+  --surface-variant: #ebebef;
+  --on-surface: #1c1c1e;
+  --on-surface-muted: #6b6b73;
+  --border: rgba(0, 0, 0, 0.1);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --gap: 16px;
+  --card-pad: 14px;
+  --card-min: 220px;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  --blur: 0px;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", monospace;
+  --status-up: #22c55e;
+  --status-down: #ef4444;
+  --status-unknown: #9ca3af;
+  --motion: 1;
+}
+
+:root[data-fx="lite"] {
+  --blur: 0px;
+  --shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion: 0;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  background: var(--bg);
+  background-image: var(--wallpaper, none);
+  background-size: cover;
+  background-attachment: fixed;
+  color: var(--on-surface);
+  font-family: var(--font);
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+}
+
+.hp-app {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: clamp(16px, 4vw, 48px);
+}
+
+.hp-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--gap);
+  margin-bottom: calc(var(--gap) * 1.5);
+}
+
+.hp-title {
+  margin: 0;
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  font-weight: 600;
+}
+
+.hp-group {
+  margin-bottom: calc(var(--gap) * 2);
+}
+
+.hp-group-title {
+  margin: 0 0 var(--gap);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--on-surface-muted);
+}
+
+.hp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(var(--card-min), 100%), 1fr));
+  gap: var(--gap);
+}
+
+.hp-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: var(--card-pad);
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  color: inherit;
+  text-decoration: none;
+  contain: layout paint;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 72px;
+  transition: transform calc(150ms * var(--motion)) ease;
+}
+
+.hp-card:hover {
+  transform: translateY(-2px);
+}
+
+.hp-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.hp-card-icon {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  object-fit: contain;
+}
+
+.hp-card-body {
+  min-width: 0;
+  flex: 1;
+}
+
+.hp-card-title,
+.hp-card-desc {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hp-card-title {
+  font-weight: 600;
+}
+
+.hp-card-desc {
+  font-size: 0.85rem;
+  color: var(--on-surface-muted);
+}
+
+.hp-status {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--status-unknown);
+}
+
+.hp-status--up {
+  background: var(--status-up);
+}
+
+.hp-status--down {
+  background: var(--status-down);
+}
+
+.hp-badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  background: var(--surface-variant);
+}
+
+.hp-badge--new {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.hp-empty {
+  color: var(--on-surface-muted);
+}

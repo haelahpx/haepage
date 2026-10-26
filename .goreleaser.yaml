@@ -1,0 +1,44 @@
+version: 2
+project_name: haepage
+
+before:
+  hooks:
+    - npm --prefix web install
+    - npm --prefix web run build
+
+builds:
+  - main: ./cmd/haepage
+    binary: haepage
+    env:
+      - CGO_ENABLED=0
+    goos: [linux]
+    goarch: [amd64, arm64, arm]
+    goarm: ["7"]
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -X github.com/haelahpx/haepage/internal/version.Version={{ .Version }}
+      - -X github.com/haelahpx/haepage/internal/version.Commit={{ .ShortCommit }}
+      - -X github.com/haelahpx/haepage/internal/version.Date={{ .Date }}
+
+archives:
+  - formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+    files:
+      - LICENSE
+      - README.md
+      - haepage.example.json
+
+checksum:
+  name_template: checksums.txt
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^chore:"

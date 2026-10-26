@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/haelahpx/haepage/schema/widget.schema.json",
+  "title": "Haepage custom widget manifest (widget.json)",
+  "type": "object",
+  "required": ["name", "id", "version", "widget-api", "entry"],
+  "properties": {
+    "name": { "type": "string", "minLength": 1 },
+    "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+    "version": { "type": "string" },
+    "widget-api": { "const": 1 },
+    "entry": { "type": "string", "pattern": "\\.html$" },
+    "permissions": {
+      "type": "object",
+      "description": "Shown to the user for approval before the widget is installed",
+      "properties": {
+        "network": {
+          "type": "array",
+          "description": "Origins the widget may fetch through the Haepage proxy",
+          "items": { "type": "string", "pattern": "^https?://" }
+        },
+        "secrets": { "type": "array", "items": { "type": "string" } },
+        "storage": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "size": {
+      "type": "object",
+      "properties": {
+        "w": { "type": "integer", "minimum": 1, "maximum": 4 },
+        "h": { "type": "integer", "minimum": 1, "maximum": 4 }
+      }
+    }
+  }
+}

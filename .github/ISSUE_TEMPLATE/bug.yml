@@ -1,0 +1,43 @@
+name: Bug report
+description: Something doesn't work the way it should
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. ...
+        2. ...
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Mode
+      options:
+        - Server mode (binary or Docker)
+        - Static mode
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Haepage version
+      description: Output of `haepage --version`, or the image tag.
+  - type: input
+    id: platform
+    attributes:
+      label: OS, architecture and browser
+      placeholder: Debian 12 arm64, Firefox 140
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Remove any secrets before pasting.
+      render: shell

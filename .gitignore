@@ -1,6 +1,6 @@
 # Binaries
 bin/
-haepage
+/haepage
 *.exe
 *.exe~
 *.dll
@@ -17,7 +17,8 @@ go.work
 
 # Node / Web Frontend
 node_modules/
-dist/
+web/dist/*
+!web/dist/.gitkeep
 .cache/
 
 # OS / Editor

@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # Switch to `npm ci` once web/package-lock.json is committed.
+      - run: npm --prefix web install
+      - name: Build (fails above the size budgets)
+        run: npm --prefix web run build
+      - run: npm --prefix web test
+      - name: Validate example config and themes against the schemas
+        run: npm --prefix web run validate
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: web/dist
+
+  go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: gofmt
+        run: test -z "$(gofmt -l .)" || (gofmt -l . && exit 1)
+      - run: go vet ./...
+      - uses: dominikh/staticcheck-action@v1
+        with:
+          install-go: false
+      - run: go test -race ./...
+
+  build:
+    needs: [web, go]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goarch: amd64
+          - goarch: arm64
+          - goarch: arm
+            goarm: "7"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - uses: actions/download-artifact@v4
+        with:
+          name: web-dist
+          path: web/dist
+      - name: Build linux/${{ matrix.goarch }}
+        env:
+          CGO_ENABLED: "0"
+          GOOS: linux
+          GOARCH: ${{ matrix.goarch }}
+          GOARM: ${{ matrix.goarm }}
+        run: go build -trimpath -ldflags "-s -w" -o haepage ./cmd/haepage
+      - name: Binary size budget (15 MB)
+        run: |
+          size=$(stat -c %s haepage)
+          echo "binary size: $size bytes"
+          test "$size" -le 15728640
+      - name: Idle benchmark
+        if: matrix.goarch == 'amd64'
+        run: tools/bench/bench.sh ./haepage 5 20 | tee -a "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: haepage-linux-${{ matrix.goarch }}
+          path: haepage

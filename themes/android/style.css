@@ -1,9 +1,29 @@
-/* Android-style theme (Material You inspired) */
+/* Android-style theme (Material You inspired). theme-api 1 */
 :root {
   --haepage-theme: "android";
-  --accent: #6750A4;
-  --surface: #1C1B1F;
-  --surface-variant: #49454F;
-  --on-surface: #E6E1E5;
+  --accent: #6750a4;
+  --on-accent: #ffffff;
+  --bg: #fef7ff;
+  --surface: #f3edf7;
+  --surface-variant: #e7e0ec;
+  --on-surface: #1d1b20;
+  --on-surface-muted: #49454f;
+  --border: transparent;
   --radius: 16px;
+  --radius-sm: 12px;
+  --shadow: none;
+}
+
+:root[data-scheme="dark"] {
+  --accent: #d0bcff;
+  --on-accent: #381e72;
+  --bg: #141218;
+  --surface: #211f26;
+  --surface-variant: #2b2930;
+  --on-surface: #e6e0e9;
+  --on-surface-muted: #cac4d0;
+}
+
+.hp-card:hover {
+  background: var(--surface-variant);
 }

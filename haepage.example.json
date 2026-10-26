@@ -15,14 +15,14 @@
   ],
   "services": [
     {
-      "id": "jellyfin",
-      "name": "Jellyfin",
+      "id": "media-server",
+      "name": "Media Server",
       "group": "media",
-      "icon": "jellyfin",
+      "icon": "media",
       "urls": {
         "lan": "http://192.168.1.10:8096",
         "tailscale": "http://server.example.ts.net:8096",
-        "public": "https://jellyfin.example.com"
+        "public": "https://media.example.com"
       },
       "check": {
         "type": "http",
@@ -32,7 +32,7 @@
     }
   ],
   "overrides": {
-    "docker:media/jellyfin": {
+    "docker:media/media-server": {
       "name": "Movies",
       "pinned": true
     }

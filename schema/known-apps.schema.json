@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/haelahpx/haepage/schema/known-apps.schema.json",
+  "title": "Haepage known-apps list",
+  "description": "Lets discovery give detected containers a name, icon, group and health check.",
+  "type": "object",
+  "required": ["version", "apps"],
+  "properties": {
+    "version": { "const": 1 },
+    "apps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "images"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+          "name": { "type": "string" },
+          "images": {
+            "type": "array",
+            "minItems": 1,
+            "description": "Image references without registry host, tag or digest",
+            "items": { "type": "string" }
+          },
+          "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+          "icon": { "type": "string" },
+          "group": { "type": "string" },
+          "check": {
+            "type": "object",
+            "properties": { "path": { "type": "string" } }
+          },
+          "fingerprint": {
+            "type": "object",
+            "required": ["path", "contains"],
+            "properties": {
+              "path": { "type": "string" },
+              "contains": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

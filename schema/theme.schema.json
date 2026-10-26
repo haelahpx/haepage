@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/haelahpx/haepage/schema/theme.schema.json",
+  "title": "Haepage theme manifest (theme.json)",
+  "type": "object",
+  "required": ["name", "theme-api"],
+  "properties": {
+    "name": { "type": "string", "minLength": 1 },
+    "author": { "type": "string" },
+    "theme-api": { "const": 1 },
+    "layout": { "const": "grid" },
+    "accent": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+    "variants": {
+      "type": "array",
+      "items": { "enum": ["light", "dark"] },
+      "uniqueItems": true
+    },
+    "tiers": {
+      "type": "array",
+      "items": { "enum": ["full", "balanced", "lite"] },
+      "uniqueItems": true
+    }
+  }
+}
