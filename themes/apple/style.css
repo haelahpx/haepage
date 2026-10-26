@@ -1,0 +1,9 @@
+/* Apple-style theme (iOS / macOS glassmorphic inspired) */
+:root {
+  --haepage-theme: "apple";
+  --accent: #007AFF;
+  --surface: rgba(255, 255, 255, 0.15);
+  --surface-variant: rgba(255, 255, 255, 0.25);
+  --on-surface: #FFFFFF;
+  --radius: 20px;
+}

@@ -1,0 +1,32 @@
+# Binaries
+bin/
+haepage
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Secrets & Configs
+secrets.json
+secrets.*.json
+
+# Go
+*.out
+go.work
+
+# Node / Web Frontend
+node_modules/
+dist/
+.cache/
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
+
+# Internal / Dev Docs
+docs/dev/

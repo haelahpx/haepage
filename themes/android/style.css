@@ -1,0 +1,9 @@
+/* Android-style theme (Material You inspired) */
+:root {
+  --haepage-theme: "android";
+  --accent: #6750A4;
+  --surface: #1C1B1F;
+  --surface-variant: #49454F;
+  --on-surface: #E6E1E5;
+  --radius: 16px;
+}

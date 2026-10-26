@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "settings": {
+    "title": "Home",
+    "theme": "android",
+    "fx": "auto",
+    "search": "duckduckgo"
+  },
+  "groups": [
+    {
+      "id": "media",
+      "name": "Media",
+      "order": 1
+    }
+  ],
+  "services": [
+    {
+      "id": "jellyfin",
+      "name": "Jellyfin",
+      "group": "media",
+      "icon": "jellyfin",
+      "urls": {
+        "lan": "http://192.168.1.10:8096",
+        "tailscale": "http://server.example.ts.net:8096",
+        "public": "https://jellyfin.example.com"
+      },
+      "check": {
+        "type": "http",
+        "expect": 200,
+        "interval": 60
+      }
+    }
+  ],
+  "overrides": {
+    "docker:media/jellyfin": {
+      "name": "Movies",
+      "pinned": true
+    }
+  },
+  "layout": {
+    "type": "grid",
+    "columns": "auto",
+    "profiles": {
+      "home": []
+    }
+  },
+  "widgets": [],
+  "engines": [
+    {
+      "id": "duckduckgo",
+      "prefix": "d",
+      "url": "https://duckduckgo.com/?q=%s"
+    }
+  ]
+}
