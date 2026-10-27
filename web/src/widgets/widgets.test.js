@@ -76,3 +76,21 @@ test("leafPaths and arrayPaths", async () => {
   assert.deepEqual(arrayPaths([{ a: [1] }]), ["", "[0].a"]);
   assert.equal(leafPaths({ a: Array.from({ length: 100 }, (_, i) => ({ ["k" + i]: i })) }, 5).length, 1);
 });
+
+test("timeAgo, dayLabel and groupByDay", async () => {
+  const { timeAgo, dayLabel, groupByDay } = await import("./lib.js");
+  const now = new Date(2026, 9, 27, 12, 0).getTime(); // local time
+  assert.equal(timeAgo(new Date(now - 30_000).toISOString(), now), "just now");
+  assert.equal(timeAgo(new Date(now - 5 * 60_000).toISOString(), now), "5m ago");
+  assert.equal(timeAgo(new Date(now - 3 * 3600_000).toISOString(), now), "3h ago");
+  assert.equal(timeAgo(new Date(now - 2 * 86400_000).toISOString(), now), "2d ago");
+  assert.equal(timeAgo("", now), "");
+  const at = (d, h) => new Date(2026, 9, d, h).toISOString();
+  assert.equal(dayLabel({ start: at(27, 18) }, now), "Today");
+  assert.equal(dayLabel({ start: at(27, 8) }, now), "Today", "ongoing earlier today");
+  assert.equal(dayLabel({ start: at(28, 0) }, now), "Tomorrow");
+  assert.equal(dayLabel({ date: "2026-10-28", start: "x" }, now), "Tomorrow");
+  assert.equal(dayLabel({ start: at(29, 9) }, now, "en-GB"), "Thu 29 Oct");
+  const groups = groupByDay([{ start: at(27, 13) }, { start: at(27, 15) }, { date: "2026-10-28" }, { start: at(30, 9) }], now, "en-GB");
+  assert.deepEqual(groups.map((g) => [g.label, g.events.length]), [["Today", 2], ["Tomorrow", 1], ["Fri 30 Oct", 1]]);
+});

@@ -18,6 +18,7 @@ import (
 	"strings"
 	"syscall"
 	"time"
+	_ "time/tzdata" // calendar time zones; the Docker image has no zoneinfo
 
 	"github.com/haelahpx/haepage/internal/config"
 	"github.com/haelahpx/haepage/internal/discovery"

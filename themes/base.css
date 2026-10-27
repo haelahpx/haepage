@@ -1792,3 +1792,119 @@ li:hover > .hp-w-remove,
   display: flex;
   gap: 8px;
 }
+
+/* Feed, calendar and release widgets */
+.hp-w-setup {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.hp-w-setup label {
+  display: grid;
+  gap: 4px;
+}
+
+.hp-w-setup input,
+.hp-w-setup textarea {
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-variant);
+  color: inherit;
+  font: inherit;
+}
+
+.hp-w-setup small {
+  color: var(--on-surface-muted);
+}
+
+.hp-w-feed ul,
+.hp-w-releases ul,
+.hp-w-calendar ul {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hp-w-feed li,
+.hp-w-releases li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  padding: 5px 0;
+  font-size: 0.9rem;
+}
+
+.hp-w-feed a,
+.hp-w-releases a {
+  overflow: hidden;
+  color: inherit;
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.hp-w-feed a:hover,
+.hp-w-releases a:hover {
+  color: var(--accent);
+}
+
+.hp-w-feed small,
+.hp-w-releases small {
+  flex: none;
+  margin-left: auto;
+  color: var(--on-surface-muted);
+}
+
+.hp-w-releases-repo {
+  flex: none;
+  max-width: 40%;
+  overflow: hidden;
+  color: var(--on-surface-muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.hp-w-calendar section + section {
+  margin-top: 10px;
+}
+
+.hp-w-calendar h3 {
+  margin: 0 0 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--on-surface-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.hp-w-calendar li {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr);
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 0.9rem;
+}
+
+.hp-w-calendar-time {
+  color: var(--on-surface-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.hp-w-calendar-what {
+  display: grid;
+  min-width: 0;
+}
+
+.hp-w-calendar-what small {
+  overflow: hidden;
+  color: var(--on-surface-muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

@@ -46,8 +46,9 @@ async function bundle() {
     metafile: true,
     logLevel: "warning",
   });
-  // The entry chunk; widgets and their shared code are separate chunks.
-  const out = Object.entries(result.metafile.outputs).find(([, o]) => o.entryPoint)[0];
+  // The page's entry chunk. Lazily imported widgets count as entry points
+  // too, so match main.jsx itself.
+  const out = Object.entries(result.metafile.outputs).find(([, o]) => o.entryPoint?.endsWith("src/main.jsx"))[0];
   return basename(out);
 }
 

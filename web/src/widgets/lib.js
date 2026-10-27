@@ -144,3 +144,42 @@ export function arrayPaths(value, limit = 20) {
   walk(value, "");
   return out;
 }
+
+// "just now", "5m ago", "3h ago", "2d ago", then the date.
+export function timeAgo(iso, now = Date.now(), locale) {
+  if (!iso) return "";
+  const t = Date.parse(iso);
+  const s = Math.max(0, (now - t) / 1000);
+  if (s < 60) return "just now";
+  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+  if (s < 7 * 86400) return `${Math.floor(s / 86400)}d ago`;
+  return new Intl.DateTimeFormat(locale, { day: "numeric", month: "short" }).format(t);
+}
+
+function dayStart(t) {
+  const d = new Date(t);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+}
+
+// Calendar day headings: "Today", "Tomorrow", then "Thu 29 Oct". All-day
+// events carry their date ("2026-10-29"), read as a local day.
+export function dayLabel(event, now = Date.now(), locale) {
+  const t = event.date ? new Date(`${event.date}T00:00:00`).getTime() : Date.parse(event.start);
+  const diff = Math.round((dayStart(t) - dayStart(now)) / 86400000);
+  if (diff <= 0) return "Today";
+  if (diff === 1) return "Tomorrow";
+  return new Intl.DateTimeFormat(locale, { weekday: "short", day: "numeric", month: "short" }).format(t);
+}
+
+// Groups events under their day heading, keeping order.
+export function groupByDay(events, now, locale) {
+  const groups = [];
+  for (const e of events) {
+    const label = dayLabel(e, now, locale);
+    if (groups.at(-1)?.label === label) groups.at(-1).events.push(e);
+    else groups.push({ label, events: [e] });
+  }
+  return groups;
+}

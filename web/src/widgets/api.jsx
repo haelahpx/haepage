@@ -1,5 +1,5 @@
-import { useEffect, useState } from "preact/hooks";
-import { useEvery } from "./api.js";
+import { useState } from "preact/hooks";
+import { useWidgetData } from "./api.js";
 import { arrayPaths, formatValue, getPath, leafPaths } from "./lib.js";
 
 // The no-code API widget (IMPLEMENTATION.md M4.4). The server fetches the
@@ -14,13 +14,6 @@ import { arrayPaths, formatValue, getPath, leafPaths } from "./lib.js";
 const FORMATS = ["auto", "number", "percent", "bytes", "duration", "date", "text"];
 const DISPLAYS = { stat: "Numbers", progress: "Progress bars", list: "List", table: "Table" };
 const ROWS = 8;
-
-async function loadData(id) {
-  const res = await fetch(`./api/widgets/${encodeURIComponent(id)}/data`, { cache: "no-store" });
-  const body = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(body?.error ?? `HTTP ${res.status}`);
-  return body;
-}
 
 function maxOf(field, item) {
   if (field.max === undefined || field.max === "") return 100;
@@ -259,26 +252,8 @@ function Editor({ options, setOptions, data, onDone }) {
 export default function Api({ widget, options, setOptions, ctx }) {
   // Open the editor until the widget has an address and fields.
   const [editing, setEditing] = useState(!options.url || !options.fields?.length);
-  const [data, setData] = useState(undefined);
-  const [error, setError] = useState(null);
   const canFetch = ctx.capabilities?.has("widgets.proxy");
-  const settingsKey = JSON.stringify([options.url, options.headers]);
-
-  const refresh = async () => {
-    try {
-      setData(await loadData(widget.id));
-      setError(null);
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-  useEvery(refresh, canFetch && options.url ? (widget.refresh ?? 60) : 0);
-  // Settings save a moment after a change; fetch again once they have.
-  useEffect(() => {
-    if (!canFetch || !options.url) return undefined;
-    const t = setTimeout(refresh, 900);
-    return () => clearTimeout(t);
-  }, [settingsKey]);
+  const { data, error } = useWidgetData(widget, canFetch && !!options.url, JSON.stringify([options.url, options.headers]), widget.refresh ?? 60);
 
   if (!canFetch) return <p class="hp-widget-empty">API widgets need Haepage's Server mode, which keeps keys off the browser.</p>;
 
