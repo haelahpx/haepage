@@ -1116,7 +1116,7 @@ body::before {
 
 .hp-inbox-item > .hp-card,
 .hp-bento .hp-inbox-item > .hp-card {
-  padding-right: 100px;
+  padding-right: 88px;
 }
 
 .hp-inbox-item .hp-status-label,
@@ -1132,21 +1132,21 @@ body::before {
   right: 8px;
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 6px;
   transform: translateY(-50%);
 }
 
-/* A quiet pill: the list stays calm, and themes give it their own look. */
+/* Round icon buttons: + to add (tinted with the accent), × to hide. */
 .hp-inbox-add {
-  min-width: 52px;
-  padding: 5px 14px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
   border: 0;
-  border-radius: 999px;
-  background: var(--surface-variant);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
   color: var(--accent);
-  font: inherit;
-  font-size: 0.82rem;
-  font-weight: 700;
   cursor: pointer;
   transition:
     transform calc(150ms * var(--motion)) var(--ease),
@@ -1165,10 +1165,11 @@ body::before {
 .hp-inbox-hide {
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   padding: 0;
   border-radius: 50%;
+  background: var(--surface-variant);
   color: var(--on-surface-muted);
 }
 

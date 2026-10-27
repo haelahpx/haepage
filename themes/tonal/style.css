@@ -377,7 +377,7 @@
   border-radius: 14px;
 }
 
-/* New list: a filled-tonal Add button. */
+/* New list: a filled-tonal + button. */
 .hp-inbox-add {
   background: var(--primary-container);
   color: var(--on-primary-container);
