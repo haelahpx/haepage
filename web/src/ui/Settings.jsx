@@ -54,6 +54,76 @@ function ThemeChecks({ findings }) {
   );
 }
 
+// Keys for API widgets, kept in the server's secrets.json. Values are
+// write-only: the browser only ever sees names.
+function Secrets() {
+  const [names, setNames] = useState(null);
+  const [name, setName] = useState("");
+  const [value, setValue] = useState("");
+  const [error, setError] = useState(null);
+  const load = () =>
+    fetch("./api/secrets")
+      .then((r) => r.json())
+      .then((b) => setNames(b.names))
+      .catch(() => setNames([]));
+  useEffect(() => {
+    load();
+  }, []);
+  const save = async (n, v, method = "PUT") => {
+    const res = await fetch(`./api/secrets/${encodeURIComponent(n)}`, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: method === "PUT" ? JSON.stringify({ value: v }) : undefined,
+    });
+    if (!res.ok) throw new Error((await res.json().catch(() => null))?.error ?? `HTTP ${res.status}`);
+    load();
+  };
+
+  return (
+    <div class="hp-field">
+      <span>Secrets</span>
+      <small class="hp-dialog-help">
+        Keys for API widgets. Use one as {"{{secrets.name}}"} in a widget's address or headers; the server fills it in, and browsers never see it.
+      </small>
+      {names?.length > 0 && (
+        <ul class="hp-connect-list">
+          {names.map((n) => (
+            <li key={n}>
+              <span>
+                <strong>{n}</strong>
+                <small>{`{{secrets.${n}}}`}</small>
+              </span>
+              <button type="button" class="hp-button hp-button--quiet" onClick={() => save(n, "", "DELETE").catch((e) => setError(e.message))}>
+                Remove
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <form
+        class="hp-w-form"
+        onSubmit={(e) => {
+          e.preventDefault();
+          setError(null);
+          save(name.trim(), value)
+            .then(() => {
+              setName("");
+              setValue("");
+            })
+            .catch((err) => setError(err.message));
+        }}
+      >
+        <input placeholder="name" aria-label="Secret name" value={name} pattern="[a-z0-9_-]+" onInput={(e) => setName(e.currentTarget.value.toLowerCase())} />
+        <input type="password" placeholder="value" aria-label="Secret value" autocomplete="off" value={value} onInput={(e) => setValue(e.currentTarget.value)} />
+        <button type="submit" class="hp-button" disabled={!name.trim() || !value}>
+          Save
+        </button>
+      </form>
+      {error && <p class="hp-error">{error}</p>}
+    </div>
+  );
+}
+
 function Field({ label, children }) {
   return (
     <label class="hp-field">
@@ -75,6 +145,7 @@ export function Settings({
   canLint,
   wallpapers,
   groups = [],
+  canSecrets = false,
   apps = [],
   onManageApp,
   onChange,
@@ -326,6 +397,8 @@ export function Settings({
             ))}
           </select>
         </div>
+
+        {canSecrets && <Secrets />}
 
         {apps.length > 0 && (
           <div class="hp-field">

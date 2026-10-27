@@ -439,7 +439,13 @@ export function App() {
     (next) => update({ ...config, widgets: config.widgets.map((w) => (w.id === next.id ? next : w)) }),
     [config, update],
   );
-  const widgetCtx = { system };
+  const widgetCtx = {
+    system,
+    capabilities: mode?.capabilities ?? new Set(),
+    // Lets an API widget reach a host on the home network (settings.proxyAllow).
+    allowHost: (host) =>
+      update({ ...config, settings: { ...config.settings, proxyAllow: [...new Set([...(config.settings.proxyAllow ?? []), host])] } }),
+  };
   const placed = placeWidgets(config.widgets, sections.map((g) => g.id));
   const renderWidget = (w, inline) => <WidgetTile key={w.id} widget={w} ctx={widgetCtx} onChange={updateWidget} inline={inline} />;
   const widgetSlots = {
@@ -606,6 +612,7 @@ export function App() {
           canLint={mode?.capabilities.has("themes.lint") ?? false}
           wallpapers={canWallpapers ? (wallpapers ?? []) : null}
           groups={sections.filter((g) => !g.inbox).map((g) => ({ id: g.id, name: g.name }))}
+          canSecrets={mode?.capabilities.has("secrets") ?? false}
           onRemeasureFx={remeasureFx}
           apps={apps}
           onManageApp={(id) => {

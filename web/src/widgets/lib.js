@@ -57,3 +57,90 @@ export function describeWeather(code) {
 export function dayName(isoDate, locale) {
   return new Intl.DateTimeFormat(locale, { weekday: "short", timeZone: "UTC" }).format(new Date(`${isoDate}T12:00:00Z`));
 }
+
+// Reads a value by path: "a.b[0].c", "a.b.0.c" or "" for the whole value.
+export function getPath(value, path) {
+  if (!path) return value;
+  let cur = value;
+  for (const part of path.replace(/\[(\d+)\]/g, ".$1").split(".").filter(Boolean)) {
+    if (cur == null || typeof cur !== "object") return undefined;
+    cur = cur[part];
+  }
+  return cur;
+}
+
+const UNITS = ["B", "KB", "MB", "GB", "TB", "PB"];
+
+// Formats a value for display. Formats: auto, number, percent (0–100, or
+// 0–1 is scaled), bytes, duration (seconds), date (ISO or Unix seconds), text.
+export function formatValue(v, format = "auto", locale) {
+  if (v === undefined || v === null || v === "") return "—";
+  const n = typeof v === "number" ? v : Number(v);
+  switch (format) {
+    case "number":
+      return Number.isFinite(n) ? new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(n) : String(v);
+    case "percent":
+      return Number.isFinite(n) ? `${new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(Math.abs(n) <= 1 && n !== 0 ? n * 100 : n)}%` : String(v);
+    case "bytes": {
+      if (!Number.isFinite(n)) return String(v);
+      let i = 0;
+      let x = n;
+      while (Math.abs(x) >= 1024 && i < UNITS.length - 1) {
+        x /= 1024;
+        i++;
+      }
+      return `${new Intl.NumberFormat(locale, { maximumFractionDigits: i ? 1 : 0 }).format(x)} ${UNITS[i]}`;
+    }
+    case "duration": {
+      if (!Number.isFinite(n)) return String(v);
+      const d = Math.floor(n / 86400);
+      const h = Math.floor((n % 86400) / 3600);
+      const m = Math.floor((n % 3600) / 60);
+      return d ? `${d}d ${h}h` : h ? `${h}h ${m}m` : m ? `${m}m` : `${Math.floor(n)}s`;
+    }
+    case "date": {
+      const t = typeof v === "number" ? new Date(v < 1e12 ? v * 1000 : v) : new Date(v);
+      return Number.isNaN(t.getTime()) ? String(v) : new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(t);
+    }
+    case "text":
+      return typeof v === "object" ? JSON.stringify(v) : String(v);
+    default:
+      if (typeof v === "number") return new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(v);
+      if (typeof v === "boolean") return v ? "Yes" : "No";
+      return typeof v === "object" ? JSON.stringify(v) : String(v);
+  }
+}
+
+// Paths to the simple values in an answer, for suggesting fields. Arrays
+// show their first item only ("items[0].name").
+export function leafPaths(value, limit = 40) {
+  const out = [];
+  const walk = (v, path) => {
+    if (out.length >= limit) return;
+    if (Array.isArray(v)) {
+      if (v.length) walk(v[0], `${path}[0]`);
+    } else if (v && typeof v === "object") {
+      for (const k of Object.keys(v)) walk(v[k], path ? `${path}.${k}` : k);
+    } else {
+      out.push({ path, sample: v });
+    }
+  };
+  walk(value, "");
+  return out;
+}
+
+// Paths to the arrays in an answer, for choosing a list's items.
+export function arrayPaths(value, limit = 20) {
+  const out = [];
+  const walk = (v, path) => {
+    if (out.length >= limit || !v || typeof v !== "object") return;
+    if (Array.isArray(v)) {
+      out.push(path);
+      if (v.length) walk(v[0], `${path}[0]`);
+      return;
+    }
+    for (const k of Object.keys(v)) walk(v[k], path ? `${path}.${k}` : k);
+  };
+  walk(value, "");
+  return out;
+}

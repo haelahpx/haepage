@@ -87,7 +87,8 @@ func (g *Guard) DialContext(ctx context.Context, network, addr string) (net.Conn
 
 // Client returns an HTTP client that dials through the guard, ignores
 // proxy environment variables (a proxy would dial for us), and follows at
-// most three redirects, each dialled through the guard again.
+// most three redirects, each dialled through the guard again and never from
+// https down to http.
 func (g *Guard) Client(timeout time.Duration) *http.Client {
 	return &http.Client{
 		Timeout: timeout,
@@ -103,7 +104,7 @@ func (g *Guard) Client(timeout time.Duration) *http.Client {
 			if len(via) >= 3 {
 				return errors.New("too many redirects")
 			}
-			if req.URL.Scheme != "https" {
+			if via[0].URL.Scheme == "https" && req.URL.Scheme != "https" {
 				return errors.New("redirect away from https")
 			}
 			return nil

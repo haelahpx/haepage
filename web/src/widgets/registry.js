@@ -8,6 +8,7 @@ export const WIDGET_TYPES = {
   bookmarks: { name: "Bookmarks", defaults: { links: [] }, load: () => import("./bookmarks.jsx") },
   notes: { name: "Notes", defaults: { text: "" }, load: () => import("./notes.jsx") },
   todo: { name: "To-do", defaults: { items: [] }, load: () => import("./todo.jsx") },
+  api: { name: "API (no code)", defaults: { url: "", headers: {}, display: "stat", fields: [] }, load: () => import("./api.jsx"), needs: "widgets.proxy" },
 };
 
 // Builds a new widget entry for haepage.json with an id not in `taken`.

@@ -149,6 +149,8 @@ func run(args []string) error {
 	}
 	opts.Wallpapers = &wallpaper.Library{Dir: filepath.Join(*dataDir, "wallpapers"), Cache: filepath.Join(*dataDir, "cache", "wallpapers")}
 	opts.Themes = &themes.Remote{Dir: filepath.Join(*dataDir, "cache", "themes"), Client: guard.Client(10 * time.Second)}
+	opts.Secrets = secrets
+	opts.Widgets = &proxy.Widgets{Config: cfg.Config, Secrets: secrets, Client: guard.Client(10 * time.Second)}
 
 	srv := &http.Server{
 		Addr:              *addr,
