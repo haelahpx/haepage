@@ -377,6 +377,16 @@
   border-radius: 14px;
 }
 
+/* New list: a filled-tonal + button. */
+.hp-inbox-add {
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+}
+
+.hp-inbox-add:hover {
+  background: color-mix(in srgb, var(--on-primary-container) 12%, var(--primary-container));
+}
+
 /* Integrations */
 .hp-chip--info {
   background: var(--primary-container);

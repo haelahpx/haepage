@@ -1,70 +1,68 @@
 /* Glass theme. theme-api 1
-   Light: near-white tiles with soft depth. Dark: translucent glass on navy.
-   Depth comes from fills, hairlines and shadows, not live blur; blur is
-   used only on overlays. Tiers: full blurs and saturates overlays and
-   presses with a spring; balanced uses a smaller blur without
-   saturation; lite has no blur, opaque overlays and no motion. */
+   Glassmorphism: translucent, frosted tiles with a light edge over soft
+   colour fields, in light and dark. Tiles (a handful per page) and
+   overlays blur what is behind them; cards inside tiles don't. Tiers:
+   full blurs and saturates and presses with a spring; balanced blurs less
+   without saturation; lite has no blur, solid tiles and no motion. */
 
 :root {
   --haepage-theme: "glass";
   --accent: #007aff;
   --on-accent: #ffffff;
-  --bg: #f2f3f7;
-  --bg-image: radial-gradient(1100px 700px at 50% -20%, rgba(0, 122, 255, 0.06), transparent 70%);
-  --surface: rgba(255, 255, 255, 0.86);
+  --bg: #eef1f8;
+  --bg-image:
+    radial-gradient(60vmax 48vmax at -5% -10%, rgba(110, 160, 255, 0.55), transparent 62%),
+    radial-gradient(52vmax 44vmax at 105% 10%, rgba(255, 150, 200, 0.42), transparent 62%),
+    radial-gradient(64vmax 50vmax at 40% 112%, rgba(120, 225, 205, 0.45), transparent 62%);
+  --surface: rgba(255, 255, 255, 0.42);
   --surface-variant: rgba(118, 118, 128, 0.08);
   --surface-low: transparent;
   --fill: rgba(118, 118, 128, 0.1);
   --separator: rgba(60, 60, 67, 0.09);
   --on-surface: #1c1c1e;
   --on-surface-muted: #8a8a8e;
-  --border: rgba(255, 255, 255, 0.9);
-  --sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0) 40%);
-  --overlay: rgba(250, 250, 252, 0.82);
+  --border: rgba(255, 255, 255, 0.65);
+  --sheen: linear-gradient(transparent, transparent);
+  --overlay: rgba(250, 250, 252, 0.72);
   --radius: 16px;
   --radius-sm: 12px;
   --tile-radius: 26px;
   --icon-radius: 10px;
   --shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 6px 18px rgba(15, 23, 42, 0.05);
-  --tile-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 32px rgba(15, 23, 42, 0.06);
+  --tile-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75), 0 8px 32px rgba(31, 38, 135, 0.1);
   --blur: 28px;
   --glass-filter: blur(var(--blur)) saturate(1.8);
+  --tile-filter: blur(22px) saturate(1.6);
   --status-up: #34c759;
   --status-down: #ff3b30;
   --status-unknown: #aeaeb2;
   --ring-track: rgba(118, 118, 128, 0.14);
   --font: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
-
-  /* Hero art: a soft sky and layered hills, painted once. */
   --hero-base: #ffffff;
-  --hero-sky: linear-gradient(180deg, #fbe7da 0%, #e9eef8 55%, #dfe7f3 100%);
-  --hero-hills: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 220'%3E%3Cpath d='M0 150 70 110 130 132 220 62 300 118 360 92 430 124 520 70 600 104V220H0Z' fill='%23d6deec'/%3E%3Cpath d='M0 186 90 140 170 168 260 122 350 164 440 128 520 156 600 136V220H0Z' fill='%23b5c3d8'/%3E%3Cpath d='M0 208 120 178 230 198 330 172 450 196 540 180 600 190V220H0Z' fill='%2394a7c2'/%3E%3C/svg%3E");
 }
 
 :root[data-scheme="dark"] {
   --accent: #0a84ff;
-  --bg: #121725;
+  --bg: #0d111d;
   --bg-image:
-    radial-gradient(900px 640px at 8% -12%, rgba(10, 132, 255, 0.18), transparent 70%),
-    radial-gradient(820px 620px at 108% 108%, rgba(94, 92, 230, 0.16), transparent 70%);
-  --surface: rgba(255, 255, 255, 0.06);
+    radial-gradient(60vmax 48vmax at -5% -10%, rgba(40, 110, 255, 0.45), transparent 62%),
+    radial-gradient(52vmax 44vmax at 105% 15%, rgba(150, 80, 255, 0.38), transparent 62%),
+    radial-gradient(64vmax 50vmax at 45% 112%, rgba(20, 190, 180, 0.32), transparent 62%);
+  --surface: rgba(255, 255, 255, 0.07);
   --surface-variant: rgba(255, 255, 255, 0.08);
   --fill: rgba(0, 0, 0, 0.3);
   --separator: rgba(255, 255, 255, 0.07);
   --on-surface: #f3f5fa;
   --on-surface-muted: rgba(235, 240, 255, 0.5);
-  --border: rgba(255, 255, 255, 0.07);
-  --sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0) 40%);
-  --overlay: rgba(28, 33, 48, 0.84);
+  --border: rgba(255, 255, 255, 0.12);
+  --overlay: rgba(28, 33, 48, 0.7);
   --shadow: 0 10px 26px rgba(0, 0, 0, 0.3);
-  --tile-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 0 rgba(0, 0, 0, 0.25), 0 20px 44px rgba(0, 0, 0, 0.34);
+  --tile-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 16px 40px rgba(0, 0, 0, 0.35);
   --status-up: #30d158;
   --status-down: #ff453a;
   --ring-track: rgba(255, 255, 255, 0.1);
   --hero-base: #1a2031;
-  --hero-sky: linear-gradient(180deg, #1c2745 0%, #273457 60%, #2c3a5e 100%);
-  --hero-hills: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 220'%3E%3Cpath d='M0 150 70 110 130 132 220 62 300 118 360 92 430 124 520 70 600 104V220H0Z' fill='%23324063'/%3E%3Cpath d='M0 186 90 140 170 168 260 122 350 164 440 128 520 156 600 136V220H0Z' fill='%23283452'/%3E%3Cpath d='M0 208 120 178 230 198 330 172 450 196 540 180 600 190V220H0Z' fill='%231f2841'/%3E%3C/svg%3E");
 }
 
 /* Surfaces */
@@ -73,6 +71,14 @@
 .hp-card,
 .hp-banner {
   background: var(--sheen), var(--surface);
+}
+
+/* Frosted tiles: they blur the colour fields (or wallpaper) behind them.
+   With a pre-blurred wallpaper the tiles use that instead (below). */
+:root:not([data-fx="lite"]):not([data-wallpaper-blurred]) .hp-tile,
+:root:not([data-fx="lite"]):not([data-wallpaper-blurred]) .hp-banner {
+  -webkit-backdrop-filter: var(--tile-filter);
+  backdrop-filter: var(--tile-filter);
 }
 
 .hp-card {
@@ -119,12 +125,9 @@
 
 /* Bento: hero */
 
+/* The hero is glass like the other tiles. */
 .hp-tile--hero {
-  background:
-    linear-gradient(90deg, var(--hero-base) 36%, transparent 72%),
-    var(--hero-hills) right bottom / auto 80% no-repeat,
-    var(--hero-sky) right / 64% 100% no-repeat,
-    var(--hero-base);
+  background: var(--sheen), var(--surface);
 }
 
 .hp-hero-clock .hp-clock-time {
@@ -269,8 +272,8 @@
   padding-top: 12px;
   padding-bottom: 12px;
   font-size: 0.95rem;
-  background: color-mix(in srgb, var(--hero-base) 82%, transparent);
-  border: 1px solid var(--separator);
+  background: color-mix(in srgb, var(--hero-base) 55%, transparent);
+  border: 1px solid var(--border);
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
@@ -299,6 +302,7 @@
 :root[data-fx="balanced"] {
   --blur: 16px;
   --glass-filter: blur(var(--blur));
+  --tile-filter: blur(14px);
 }
 
 .hp-search-results {
@@ -382,12 +386,13 @@
 /* Lite: flat background, no glow, no motion. Overlays turn opaque,
    since without blur the page would show through them. */
 :root[data-fx="lite"] {
-  --bg-image: none;
   --overlay: #fafafc;
+  --surface: rgba(255, 255, 255, 0.86);
 }
 
 :root[data-fx="lite"][data-scheme="dark"] {
   --overlay: #1c2130;
+  --surface: rgba(30, 36, 54, 0.92);
 }
 
 :root[data-fx="lite"] .hp-status {
@@ -403,6 +408,20 @@
 :root[data-fx="lite"] .hp-bento .hp-card:active,
 :root[data-fx="lite"] .hp-button:active {
   transform: none;
+}
+
+/* New list: a blue-tinted + and a frosted ×. */
+.hp-inbox-add {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent);
+}
+
+.hp-inbox-hide {
+  background: var(--fill);
+}
+
+.hp-inbox-add:hover {
+  background: color-mix(in srgb, var(--accent) 14%, var(--fill));
 }
 
 /* Inbox rows keep the list separators. */

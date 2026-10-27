@@ -29,6 +29,7 @@ func TestLintFindsEachRule(t *testing.T) {
 		{"keyframes", "@keyframes grow {\n  from { height: 0 }\n  to { height: 10px; opacity: 1 }\n}", "animation@2 animation@3"},
 		{"keyframes transform ok", "@keyframes spin { to { transform: rotate(1turn) } }", ""},
 		{"blur on cards", ".hp-bento .hp-card:hover { backdrop-filter: blur(10px) }", "backdrop-filter@1"},
+		{"blur on tiles ok", ".hp-tile { backdrop-filter: blur(20px) }", ""},
 		{"blur on overlay ok", ".hp-drawer, .hp-toast { backdrop-filter: blur(20px) }", ""},
 		{"large blur", ".hp-drawer { backdrop-filter: blur(60px) }\n:root { --blur: 48px }", "blur@1 blur@2"},
 		{"many shadows", ".hp-tile { box-shadow: 0 0 1px a, 0 0 2px b, 0 0 3px c, 0 0 4px d, 0 0 5px e }", "shadow@1"},

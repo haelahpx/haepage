@@ -81,8 +81,16 @@ function InboxItem({ service, health, chip, actions }) {
     <div class="hp-inbox-item">
       <Card service={{ ...service, isNew: false }} health={health} chip={chip} />
       <div class="hp-inbox-actions">
-        <button type="button" class="hp-button hp-inbox-add" onClick={() => actions.accept(service)}>
-          Add
+        <button
+          type="button"
+          class="hp-inbox-add"
+          aria-label={`Add ${service.name}`}
+          title="Add"
+          onClick={() => actions.accept(service)}
+        >
+          <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+            <path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
         </button>
         <button
           type="button"

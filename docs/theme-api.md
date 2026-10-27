@@ -139,7 +139,7 @@ Make sure the theme still looks right on `lite`, because many phones will use it
 These keep heavy themes smooth. The theme linter checks them: run `haepage lint-theme style.css` (or a link), add `-strict` to fail on warnings, or see the same checks in Settings in Server mode.
 
 - Animate only `transform` and `opacity`. Never animate `width`, `height`, `top`, `left`, `filter` or `backdrop-filter`.
-- Keep live `backdrop-filter` to small areas. For frosted glass over a wallpaper, prefer `--wallpaper-blurred` as a background.
+- Keep live `backdrop-filter` off elements that repeat many times (cards, search results, chips). Tiles are fine: a page has only a handful. Over a wallpaper, `--wallpaper-blurred` as a background gives the same frosted look for free.
 - Keep CSS under about 50 KB.
 - Don't `@import` CSS from other sites.
 - Use the system font stack, or subset a web font and use `font-display: swap`.

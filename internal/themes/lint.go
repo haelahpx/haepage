@@ -212,8 +212,9 @@ var layoutProps = map[string]bool{
 	"font-size": true, "border-width": true,
 }
 
-// Elements that repeat on a page; a live blur on each one is expensive.
-var repeatedClass = regexp.MustCompile(`\.hp-(card|tile|group|result|widget|media|chip|badge|status|seg|metric|activity|avatar|bar)\b(?:[^-]|$)`)
+// Elements that repeat many times on a page; a live blur on each one is
+// expensive. Tiles are not listed: a page has a handful (decision D17).
+var repeatedClass = regexp.MustCompile(`\.hp-(card|result|chip|badge|status|seg|metric|activity|avatar|bar|media)\b(?:[^-]|$)`)
 
 var (
 	blurRadius  = regexp.MustCompile(`blur\(\s*([0-9.]+)px`)
