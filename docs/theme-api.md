@@ -122,7 +122,7 @@ Put light values on `:root` and dark values under `[data-scheme="dark"]`:
 
 ## Effect tiers
 
-Haepage picks a tier for each device and the visitor can override it:
+Haepage picks a tier for each device and the visitor can override it. Low-memory, data-saving and reduced-motion devices get `lite`. Others are measured once by frame timing, and the result is remembered in that browser.
 
 - **full**: every effect.
 - **balanced**: blur capped at about 12px, fewer animations.

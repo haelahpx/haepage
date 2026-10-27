@@ -956,6 +956,22 @@ body::before {
   resize: vertical;
 }
 
+.hp-field-note {
+  margin: -8px 0 14px;
+  font-size: 0.8rem;
+  color: var(--on-surface-muted);
+}
+
+.hp-link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 .hp-drawer-actions {
   display: flex;
   flex-wrap: wrap;
