@@ -5,7 +5,9 @@ import { autoFx, resolveFx, resolveScheme } from "./fx.js";
 test("autoFx", () => {
   assert.equal(autoFx({ deviceMemory: 8, hardwareConcurrency: 8 }), "balanced");
   assert.equal(autoFx({}), "balanced");
-  assert.equal(autoFx(undefined), "balanced");
+  // null, not undefined: undefined would fall back to the real navigator,
+  // which depends on the machine running the tests.
+  assert.equal(autoFx(null), "balanced");
   assert.equal(autoFx({ deviceMemory: 2 }), "lite");
   assert.equal(autoFx({ hardwareConcurrency: 2 }), "lite");
   assert.equal(autoFx({ connection: { saveData: true } }), "lite");

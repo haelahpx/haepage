@@ -8,6 +8,7 @@ COPY web/package.json web/package-lock.json ./
 RUN npm ci --no-audit --no-fund
 COPY web/ ./
 COPY themes/ /src/themes/
+COPY LICENSE THIRD_PARTY_NOTICES.md /src/
 RUN npm run build
 
 FROM golang:1.27-alpine AS build
