@@ -23,6 +23,7 @@ import (
 	"github.com/haelahpx/haepage/internal/config"
 	"github.com/haelahpx/haepage/internal/discovery"
 	"github.com/haelahpx/haepage/internal/health"
+	"github.com/haelahpx/haepage/internal/history"
 	"github.com/haelahpx/haepage/internal/integrations"
 	"github.com/haelahpx/haepage/internal/proxy"
 	"github.com/haelahpx/haepage/internal/server"
@@ -123,9 +124,30 @@ func run(args []string) error {
 	if detect {
 		go runner.Run(ctx)
 	}
+	var hist *history.History
 	if !*noHealth {
-		sched := &health.Scheduler{Targets: svc.targets, Report: reg.SetHealth}
+		// Every check result also goes into the 24-hour uptime history,
+		// which is saved every 5 minutes and on shutdown.
+		hist = history.Open(filepath.Join(*dataDir, "cache", "state.json"))
+		sched := &health.Scheduler{Targets: svc.targets, Report: func(id string, h store.Health) {
+			reg.SetHealth(id, h)
+			hist.Record(id, h.Status)
+		}}
 		go sched.Run(ctx)
+		go func() {
+			tick := time.NewTicker(5 * time.Minute)
+			defer tick.Stop()
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case <-tick.C:
+					if err := hist.Save(); err != nil {
+						logger.Warn("saving uptime history", "err", err)
+					}
+				}
+			}
+		}()
 	}
 
 	secrets, err := config.OpenSecrets(filepath.Join(*dataDir, "secrets.json"))
@@ -151,6 +173,7 @@ func run(args []string) error {
 	opts.Wallpapers = &wallpaper.Library{Dir: filepath.Join(*dataDir, "wallpapers"), Cache: filepath.Join(*dataDir, "cache", "wallpapers")}
 	opts.Themes = &themes.Remote{Dir: filepath.Join(*dataDir, "cache", "themes"), Client: guard.Client(10 * time.Second)}
 	opts.Secrets = secrets
+	opts.History = hist
 	opts.Widgets = &proxy.Widgets{Config: cfg.Config, Secrets: secrets, Client: guard.Client(10 * time.Second)}
 
 	srv := &http.Server{
@@ -173,6 +196,11 @@ func run(args []string) error {
 	}
 
 	logger.Info("shutting down")
+	if hist != nil {
+		if err := hist.Save(); err != nil {
+			logger.Warn("saving uptime history", "err", err)
+		}
+	}
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	return srv.Shutdown(shutdownCtx)

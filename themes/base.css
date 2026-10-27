@@ -199,6 +199,7 @@ body::before {
 }
 
 .hp-card {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -218,6 +219,36 @@ body::before {
 
 .hp-card:hover {
   transform: translateY(-2px);
+}
+
+/* Uptime strip, shown on hover: one bar per half hour of the last day. */
+.hp-uptime {
+  position: absolute;
+  right: var(--card-pad);
+  bottom: 4px;
+  left: var(--card-pad);
+  display: flex;
+  gap: 1px;
+  height: 3px;
+  pointer-events: none;
+}
+
+.hp-uptime-bar {
+  flex: 1;
+  border-radius: 1px;
+  background: var(--ring-track);
+}
+
+.hp-uptime-bar--up {
+  background: var(--status-up);
+}
+
+.hp-uptime-bar--down {
+  background: var(--status-down);
+}
+
+.hp-uptime-bar--partial {
+  background: color-mix(in srgb, var(--status-down) 55%, var(--status-up));
 }
 
 .hp-card:focus-visible {

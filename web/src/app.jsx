@@ -154,6 +154,7 @@ function useHealth(services, enabled) {
 
 const SYSTEM_INTERVAL = 5_000;
 const TAILSCALE_INTERVAL = 30_000;
+const HISTORY_INTERVAL = 300_000;
 
 // Polls a JSON endpoint while the tab is visible. Keeps the last good
 // reading when a poll fails; null until the first one arrives.
@@ -430,6 +431,8 @@ export function App() {
   }, [mode, config.overrides]);
   const systemEnabled = mode?.capabilities.has("system") ?? false;
   const system = { enabled: systemEnabled, stats: usePolled("./api/system", systemEnabled, SYSTEM_INTERVAL) };
+  const historyEnabled = mode?.capabilities.has("history") ?? false;
+  const uptime = usePolled("./api/history", historyEnabled, HISTORY_INTERVAL)?.services ?? {};
   const tailscaleEnabled = mode?.capabilities.has("tailscale.devices") ?? false;
   const tailnet = { enabled: tailscaleEnabled, data: usePolled("./api/tailscale/devices", tailscaleEnabled, TAILSCALE_INTERVAL) };
 
@@ -574,6 +577,7 @@ export function App() {
           services={services}
           health={health}
           chips={chips}
+          uptime={uptime}
           system={system}
           tailnet={tailnet}
           media={media}
@@ -590,7 +594,7 @@ export function App() {
           {widgetSlots.top.length > 0 && <div class="hp-widgets">{widgetSlots.top}</div>}
           {sections.length > 0
             ? sections.map((g) => (
-                <Group key={g.id} {...g} health={health} chips={chips} actions={actions} widgets={widgetSlots.inGroup(g.id)} />
+                <Group key={g.id} {...g} health={health} chips={chips} uptime={uptime} actions={actions} widgets={widgetSlots.inGroup(g.id)} />
               ))
             : empty}
           {widgetSlots.bottom.length > 0 && <div class="hp-widgets">{widgetSlots.bottom}</div>}

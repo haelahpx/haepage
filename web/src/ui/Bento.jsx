@@ -221,7 +221,7 @@ function DevicesTile({ data }) {
 
 // Bento layout: hero (clock, greeting, search), status, server stats and
 // tailnet devices when the server provides them, then one tile per group.
-export function Bento({ title, sections, services, health, chips, system, tailnet, media, widgets, search, empty, actions, onSettings }) {
+export function Bento({ title, sections, services, health, chips, uptime, system, tailnet, media, widgets, search, empty, actions, onSettings }) {
   return (
     <div class="hp-bento">
       <Hero title={title} onSettings={onSettings}>
@@ -234,7 +234,7 @@ export function Bento({ title, sections, services, health, chips, system, tailne
       {widgets.top}
       {sections.length > 0 ? (
         sections.map((g) => (
-          <Group key={g.id} {...g} health={health} chips={chips} actions={actions} widgets={widgets.inGroup(g.id)} tile />
+          <Group key={g.id} {...g} health={health} chips={chips} uptime={uptime} actions={actions} widgets={widgets.inGroup(g.id)} tile />
         ))
       ) : (
         <section class="hp-tile hp-tile--wide">{empty}</section>

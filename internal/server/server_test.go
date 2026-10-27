@@ -5,10 +5,12 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
 	"strings"
 	"testing"
 	"testing/fstest"
 
+	"github.com/haelahpx/haepage/internal/history"
 	"github.com/haelahpx/haepage/internal/system"
 )
 
@@ -171,5 +173,23 @@ func TestSecurityHeaders(t *testing.T) {
 	}
 	if v := rec.Header().Get("Referrer-Policy"); v != "same-origin" {
 		t.Errorf("Referrer-Policy = %q", v)
+	}
+}
+
+func TestHistory(t *testing.T) {
+	hist := history.Open(filepath.Join(t.TempDir(), "state.json"))
+	hist.Record("manual:nas", "up")
+	hist.Record("manual:nas", "down")
+	h := New(Options{Static: built(), History: hist})
+	if !strings.Contains(get(t, h, http.MethodGet, "/api/ping").Body.String(), `"history"`) {
+		t.Error("ping lacks history")
+	}
+	var got struct {
+		BarMinutes int
+		Services   map[string]history.Summary
+	}
+	rec := get(t, h, http.MethodGet, "/api/history")
+	if err := json.Unmarshal(rec.Body.Bytes(), &got); err != nil || got.BarMinutes != 30 || *got.Services["manual:nas"].Uptime != 50 {
+		t.Errorf("history = %s", rec.Body)
 	}
 }
