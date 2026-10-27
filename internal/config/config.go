@@ -65,6 +65,7 @@ type Override struct {
 	URLs   *URLs  `json:"urls,omitempty"`
 	Pinned bool   `json:"pinned,omitempty"`
 	Hidden bool   `json:"hidden,omitempty"`
+	Order  *int   `json:"order,omitempty"` // place in its group (edit mode); 0 is first
 }
 
 type Settings struct {

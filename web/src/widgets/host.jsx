@@ -50,13 +50,15 @@ function Body({ widget, ctx, onChange }) {
 }
 
 // One widget: a tile in Bento, a block in Simple. `onChange` saves the
-// widget back into haepage.json (Server mode: for everyone).
-export function WidgetTile({ widget, ctx, onChange, inline = false }) {
+// widget back into haepage.json (Server mode: for everyone). With `list`
+// set (edit mode), it can be dragged within and between widget areas.
+export function WidgetTile({ widget, ctx, onChange, inline = false, list = null }) {
   const type = WIDGET_TYPES[widget.type];
   const title = widget.title ?? type?.name ?? widget.type;
   const cls = `hp-widget hp-widget--${widget.type}${inline ? "" : " hp-tile"}`;
+  const edit = list === null ? {} : { "data-edit": "widget", "data-id": widget.id, "data-list": list, tabIndex: 0 };
   return (
-    <section class={cls} aria-label={title}>
+    <section class={cls} aria-label={title} {...edit}>
       {widget.title !== "" && <h2 class="hp-widget-title">{title}</h2>}
       <div class="hp-widget-body">
         <Body widget={widget} ctx={ctx} onChange={onChange} />

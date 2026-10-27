@@ -8,5 +8,6 @@ Guides and documentation for installing, configuring, theming, and using Haepage
 - [Media app integrations](integrations.md)
 - [Themes and wallpapers](themes.md)
 - [Tailscale](tailscale.md)
+- [Arrange your page](layout.md)
 - [Widgets](widgets.md)
 - [Metrics](metrics.md)

@@ -92,6 +92,27 @@ func TestSetOverrideKeepsUnknownFields(t *testing.T) {
 	}
 }
 
+func TestOverrideKeepsOrder(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "haepage.json")
+	os.WriteFile(path, []byte(`{"version":1}`), 0o644)
+	s, err := Open(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Edit mode numbers cards from 0, and 0 must survive a round trip.
+	zero := 0
+	if _, err := s.SetOverride("docker:x", &Override{Pinned: true, Group: "media", Order: &zero}); err != nil {
+		t.Fatal(err)
+	}
+	raw, _ := s.Get()
+	if !strings.Contains(string(raw), `"order": 0`) {
+		t.Errorf("file = %s", raw)
+	}
+	if o := s.Config().Overrides["docker:x"].Order; o == nil || *o != 0 {
+		t.Errorf("order = %v", o)
+	}
+}
+
 func TestAtomicWriteLeavesNoTempFiles(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "sub", "haepage.json")

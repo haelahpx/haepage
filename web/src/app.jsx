@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "preact/hooks"
 import { emptyConfig } from "./config/defaults.js";
 import { migrate } from "./config/migrate.js";
 import { ConflictError, clearDraft, loadConfig, loadServerConfig, saveDraft, saveServerConfig } from "./config/store.js";
+import { canDropService, byOrder, moveGroup, moveService, moveWidget, movableGroup, withLayout } from "./edit.js";
 import { LIVE_EVENTS, applyLive, setOverride } from "./events.js";
 import { probe, unprobeable } from "./health.js";
 import { chipFor, shouldNotify } from "./integration.js";
@@ -18,6 +19,7 @@ import { hardLite, measureFrames, readMeasuredFx, resolveFx, resolveScheme, save
 import { Bento } from "./ui/Bento.jsx";
 import { Group } from "./ui/Card.jsx";
 import { ConnectDialog } from "./ui/Connect.jsx";
+import { useDrag } from "./ui/drag.js";
 import { Header } from "./ui/Header.jsx";
 import { MediaTiles } from "./ui/Media.jsx";
 import { Search } from "./ui/Search.jsx";
@@ -394,12 +396,14 @@ export function App() {
 
   const closeSettings = useCallback(() => setSettingsOpen(false), []);
 
+  // The config's groups and card order apply at once, before the server
+  // has merged a change and sent the list again.
   const services = useMemo(
     () =>
-      (live?.services ?? config.services)
+      byOrder(withLayout(live?.services ?? config.services, config))
         .filter((s) => s.state !== "hidden")
         .map((s) => ({ ...s, link: resolveLink(s.urls, location.hostname) })),
-    [live, config.services],
+    [live, config.services, config.overrides],
   );
   const sections = useMemo(() => arrange(config.groups, services), [config.groups, services]);
 
@@ -450,12 +454,66 @@ export function App() {
     allowHost: (host) =>
       update({ ...config, settings: { ...config.settings, proxyAllow: [...new Set([...(config.settings.proxyAllow ?? []), host])] } }),
   };
-  const placed = placeWidgets(config.widgets, sections.map((g) => g.id));
-  const renderWidget = (w, inline) => <WidgetTile key={w.id} widget={w} ctx={widgetCtx} onChange={updateWidget} inline={inline} />;
+  const groupIds = sections.map((g) => g.id);
+  const placed = placeWidgets(config.widgets, groupIds);
+
+  // Edit mode: drag (or move with the keyboard) cards, groups and widgets.
+  // Each move is one config change, saved like any other.
+  const [editing, setEditing] = useState(false);
+  const canEdit = state !== null && !mode?.offline;
+  const [moved, setMoved] = useState(""); // read out to screen readers
+  const move = ({ kind, id, list, index }) => {
+    if (kind === "service") update(moveService(config, sections, id, list, index));
+    else if (kind === "group") update(moveGroup(config, sections, id, index));
+    else if (kind === "widget") update(moveWidget(config, groupIds, id, list, index));
+  };
+  useDrag(editing, move);
+  useEffect(() => {
+    if (editing) root.dataset.editing = "";
+    else delete root.dataset.editing;
+    if (!editing) return undefined;
+    const onKey = (e) => e.key === "Escape" && !root.hasAttribute("data-dragging") && setEditing(false);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [editing]);
+  useEffect(() => {
+    if (!canEdit) setEditing(false);
+  }, [canEdit]);
+  // Arrow keys move the focused item within its list; [ and ] move a card
+  // or widget to the previous or next group.
+  const onEditKey = (e) => {
+    const el = e.target.closest?.("[data-edit]");
+    if (!editing || !el || e.target !== el || e.altKey || e.ctrlKey || e.metaKey) return;
+    const { edit: kind, id, list } = el.dataset;
+    const same = [...document.querySelectorAll(`[data-edit="${kind}"]`)].filter((x) => x.dataset.list === list);
+    const at = same.indexOf(el);
+    let to = null;
+    if (e.key === "ArrowLeft" || e.key === "ArrowUp") to = { list, index: at - 1 };
+    else if (e.key === "ArrowRight" || e.key === "ArrowDown") to = { list, index: at + 1 };
+    else if ((e.key === "[" || e.key === "]") && kind !== "group") {
+      const lists =
+        kind === "service"
+          ? sections.filter((g) => !g.inbox && canDropService(config, id, g.id)).map((g) => g.id)
+          : ["header", ...sections.filter(movableGroup).map((g) => g.id), "sidebar"];
+      const next = lists[lists.indexOf(list) + (e.key === "[" ? -1 : 1)];
+      if (next !== undefined) to = { list: next, index: Infinity };
+    }
+    if (!to || (to.list === list && (to.index < 0 || to.index >= same.length))) return;
+    e.preventDefault();
+    move({ kind, id, list: to.list, index: to.index });
+    const where = to.list === "groups" ? "" : ` in ${sections.find((g) => g.id === to.list)?.name ?? (to.list === "header" ? "the top" : "the bottom")}`;
+    setMoved(`Moved ${el.getAttribute("aria-label") || el.querySelector(".hp-card-title")?.textContent}${where}.`);
+    // Keep focus on the item once it has moved.
+    setTimeout(() => document.querySelector(`[data-edit="${kind}"][data-id="${CSS.escape(id)}"]`)?.focus(), 30);
+  };
+
+  const renderWidget = (w, inline, list) => (
+    <WidgetTile key={w.id} widget={w} ctx={widgetCtx} onChange={updateWidget} inline={inline} list={editing ? list : null} />
+  );
   const widgetSlots = {
-    top: placed.top.map((w) => renderWidget(w, false)),
-    bottom: placed.bottom.map((w) => renderWidget(w, false)),
-    inGroup: (id) => placed.groups[id]?.map((w) => renderWidget(w, true)) ?? null,
+    top: placed.top.map((w) => renderWidget(w, false, "header")),
+    bottom: placed.bottom.map((w) => renderWidget(w, false, "sidebar")),
+    inGroup: (id) => placed.groups[id]?.map((w) => renderWidget(w, true, id)) ?? null,
   };
   const chips = useMemo(
     () => Object.fromEntries(Object.entries(integrationStates).map(([id, st]) => [id, chipFor(st)]).filter(([, c]) => c)),
@@ -510,9 +568,38 @@ export function App() {
     </div>
   );
 
+  const toggleEdit = canEdit ? () => setEditing((on) => !on) : null;
+  const simpleZones = editing ? { "data-zone-group": "groups", "data-zone-widget": "header sidebar" } : {};
+
   return (
-    <main class="hp-app">
-      {!bento && <Header title={config.settings.title} onSettings={openSettings} />}
+    <main
+      class="hp-app"
+      {...(bento ? {} : simpleZones)}
+      onKeyDown={editing ? onEditKey : undefined}
+      onClickCapture={editing ? (e) => e.target.closest("a.hp-card") && e.preventDefault() : undefined}
+    >
+      {!bento && <Header title={config.settings.title} onSettings={openSettings} editing={editing} onEdit={toggleEdit} />}
+
+      {editing && (
+        <div class="hp-banner hp-edit-bar" role="region" aria-label="Editing the layout">
+          <span>
+            <strong>Editing the layout.</strong> Drag cards, groups and widgets to move them; on touch, press and hold first.
+            <span class="hp-edit-keys">
+              {" "}
+              Keyboard: arrow keys move the focused item, <kbd>[</kbd> and <kbd>]</kbd> move it to the previous or next group.
+            </span>
+            {!serverConfig && " Changes stay in this browser until you download haepage.json."}
+          </span>
+          <span class="hp-banner-actions">
+            <button type="button" class="hp-button" onClick={() => setEditing(false)}>
+              Done
+            </button>
+          </span>
+          <span class="hp-visually-hidden" aria-live="polite">
+            {moved}
+          </span>
+        </div>
+      )}
 
       {state.error && (
         <p class="hp-banner hp-banner--error" role="alert">
@@ -587,18 +674,37 @@ export function App() {
           empty={empty}
           actions={actions}
           onSettings={openSettings}
+          editing={editing}
+          onEdit={toggleEdit}
         />
       ) : (
         <>
           {search}
           <div class="hp-integrations">{media}</div>
-          {widgetSlots.top.length > 0 && <div class="hp-widgets">{widgetSlots.top}</div>}
+          {(widgetSlots.top.length > 0 || editing) && (
+            <div class="hp-widgets" {...(editing && { "data-zone-widget": "header" })}>
+              {widgetSlots.top}
+            </div>
+          )}
           {sections.length > 0
             ? sections.map((g) => (
-                <Group key={g.id} {...g} health={health} chips={chips} uptime={uptime} actions={actions} widgets={widgetSlots.inGroup(g.id)} />
+                <Group
+                  key={g.id}
+                  {...g}
+                  health={health}
+                  chips={chips}
+                  uptime={uptime}
+                  actions={actions}
+                  widgets={widgetSlots.inGroup(g.id)}
+                  editing={editing}
+                />
               ))
             : empty}
-          {widgetSlots.bottom.length > 0 && <div class="hp-widgets">{widgetSlots.bottom}</div>}
+          {(widgetSlots.bottom.length > 0 || editing) && (
+            <div class="hp-widgets" {...(editing && { "data-zone-widget": "sidebar" })}>
+              {widgetSlots.bottom}
+            </div>
+          )}
         </>
       )}
 

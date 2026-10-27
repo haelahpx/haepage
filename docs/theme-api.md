@@ -48,6 +48,8 @@ Haepage sets these. Your CSS can target them.
 | `data-style` | `bento` (tiles, the default) or `simple` (a plain list of groups) |
 | `data-wallpaper` | Present when a wallpaper is set |
 | `data-wallpaper-blurred` | Present when `--wallpaper-blurred` is available too |
+| `data-editing` | Present while the layout is being edited |
+| `data-dragging` | Present while something is being dragged in edit mode |
 
 Style both layouts. In `bento`, groups are tiles (`.hp-bento .hp-group.hp-tile`) and cards sit inside them, so most themes make cards lighter there.
 
@@ -103,6 +105,7 @@ Style both layouts. In `bento`, groups are tiles (`.hp-bento .hp-group.hp-tile`)
 | Integrations | `hp-chip` · `hp-chip--live` · `hp-chip--info` · `hp-chip--warn` · `hp-tile--media` · `hp-integrations` (Simple layout row) · `hp-media-list` · `hp-media` · `hp-media--compact` · `hp-media-poster` · `hp-media-poster--empty` · `hp-media-body` · `hp-media-title` · `hp-media-sub` · `hp-media-meta` · `hp-activity` · `hp-activity-title` · `hp-activity-meta` · `hp-connect-list` · `hp-connect-intro` |
 | Dialogs and pop-ups | `hp-dialog` · `hp-dialog-backdrop` · `hp-dialog-help` · `hp-dialog-ok` · `hp-copy` · `hp-toasts` · `hp-toast` · `hp-toast-image` · `hp-toast-body` · `hp-toast-title` · `hp-toast-detail` |
 | Widgets | `hp-widget` · `hp-widget-title` · `hp-widget-body` |
+| Edit mode | `hp-edit-button` · `hp-edit-button--on` · `hp-edit-bar` · `hp-dragging` (the item being dragged) · `hp-drop-marker` (where it will land; `data-axis` is `left`, `right`, `top`, `bottom` or `inside`). Movable items carry `data-edit="service"`, `"group"` or `"widget"`. |
 
 `hp-avatar` is the colored letter shown when a service has no icon, and `hp-group-icon` is the icon square in a bento group header. Both read `--avatar-hue` (0 to 359), which Haepage sets per service or group.
 

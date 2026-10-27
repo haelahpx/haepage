@@ -42,8 +42,26 @@ export function SettingsButton({ onClick }) {
   );
 }
 
+// Turns edit mode (moving cards, groups and widgets) on and off.
+export function EditButton({ editing, onClick }) {
+  return (
+    <button
+      type="button"
+      class={editing ? "hp-icon-button hp-edit-button hp-edit-button--on" : "hp-icon-button hp-edit-button"}
+      onClick={onClick}
+      aria-pressed={editing ? "true" : "false"}
+      aria-label="Edit layout"
+      title={editing ? "Done editing" : "Edit layout"}
+    >
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+        <path fill="currentColor" d="M4 16.5V20h3.5L18 9.5 14.5 6 4 16.5Zm11.6-11.6 3.5 3.5 1.2-1.2a1.5 1.5 0 0 0 0-2.1l-1.4-1.4a1.5 1.5 0 0 0-2.1 0l-1.2 1.2Z" />
+      </svg>
+    </button>
+  );
+}
+
 // Header for the simple layout. The bento layout puts these in its hero tile.
-export function Header({ title, onSettings }) {
+export function Header({ title, onSettings, editing, onEdit }) {
   const now = useNow();
   return (
     <header class="hp-header">
@@ -53,6 +71,7 @@ export function Header({ title, onSettings }) {
           <ClockTime now={now} />
           <span class="hp-clock-date">{formatDate(now)}</span>
         </div>
+        {onEdit && <EditButton editing={editing} onClick={onEdit} />}
         <SettingsButton onClick={onSettings} />
       </div>
     </header>
