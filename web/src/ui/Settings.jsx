@@ -81,7 +81,6 @@ function Secrets() {
 
   return (
     <div class="hp-field">
-      <span>Secrets</span>
       <small class="hp-dialog-help">
         Keys for API widgets. Use one as {"{{secrets.name}}"} in a widget's address or headers; the server fills it in, and browsers never see it.
       </small>
@@ -121,6 +120,20 @@ function Secrets() {
       </form>
       {error && <p class="hp-error">{error}</p>}
     </div>
+  );
+}
+
+// A collapsible group of settings. The summary line says what's inside,
+// so the drawer reads as a short list until a section is opened.
+function Section({ title, hint, open = false, children }) {
+  return (
+    <details class="hp-section" open={open}>
+      <summary>
+        <span class="hp-section-title">{title}</span>
+        {hint && <small>{hint}</small>}
+      </summary>
+      <div class="hp-section-body">{children}</div>
+    </details>
   );
 }
 
@@ -194,168 +207,164 @@ export function Settings({
           </button>
         </div>
 
-        <Field label="Title">
-          <input value={s.title} onInput={(e) => set({ title: e.currentTarget.value })} />
-        </Field>
-
-        <Field label="Layout">
-          <select value={s.style} onChange={(e) => set({ style: e.currentTarget.value })}>
-            <option value="bento">Bento</option>
-            <option value="simple">Simple</option>
-          </select>
-        </Field>
-
-        <Field label="Theme">
-          <select
-            value={showUrl ? "custom" : s.theme}
-            onChange={(e) => {
-              const v = e.currentTarget.value;
-              setShowUrl(v === "custom");
-              if (v !== "custom") set({ theme: v });
-            }}
-          >
-            {BUILTIN_THEMES.map((t) => (
-              <option value={t.id}>{t.name}</option>
-            ))}
-            <option value="custom">From a link…</option>
-          </select>
-        </Field>
-        {showUrl && (
-          <Field label="Theme link (https://…/style.css)">
-            <input
-              type="url"
-              placeholder="https://example.com/theme.css"
-              value={customTheme ? s.theme : ""}
-              onChange={(e) => isThemeUrl(e.currentTarget.value) && set({ theme: e.currentTarget.value })}
-            />
+        <Section title="Appearance" hint="Title, layout, theme, wallpaper, colors" open>
+          <Field label="Title">
+            <input value={s.title} onInput={(e) => set({ title: e.currentTarget.value })} />
           </Field>
-        )}
-        {showUrl && customTheme && (
-          <p class="hp-field-note">
-            {themeNote ??
-              (serverThemes
-                ? "The server keeps a copy, so the theme only changes when you update it."
-                : "Loaded by this browser from the link.")}{" "}
-            {onUpdateTheme && (
+
+          <Field label="Layout">
+            <select value={s.style} onChange={(e) => set({ style: e.currentTarget.value })}>
+              <option value="bento">Bento</option>
+              <option value="simple">Simple</option>
+            </select>
+          </Field>
+
+          <Field label="Theme">
+            <select
+              value={showUrl ? "custom" : s.theme}
+              onChange={(e) => {
+                const v = e.currentTarget.value;
+                setShowUrl(v === "custom");
+                if (v !== "custom") set({ theme: v });
+              }}
+            >
+              {BUILTIN_THEMES.map((t) => (
+                <option value={t.id}>{t.name}</option>
+              ))}
+              <option value="custom">From a link…</option>
+            </select>
+          </Field>
+          {showUrl && (
+            <Field label="Theme link (https://…/style.css)">
+              <input
+                type="url"
+                placeholder="https://example.com/theme.css"
+                value={customTheme ? s.theme : ""}
+                onChange={(e) => isThemeUrl(e.currentTarget.value) && set({ theme: e.currentTarget.value })}
+              />
+            </Field>
+          )}
+          {showUrl && customTheme && (
+            <p class="hp-field-note">
+              {themeNote ??
+                (serverThemes
+                  ? "The server keeps a copy, so the theme only changes when you update it."
+                  : "Loaded by this browser from the link.")}{" "}
+              {onUpdateTheme && (
+                <button
+                  type="button"
+                  class="hp-link-button"
+                  onClick={() =>
+                    onUpdateTheme().then(
+                      () => flashNote("Updated."),
+                      (err) => flashNote(err.message),
+                    )
+                  }
+                >
+                  Update
+                </button>
+              )}{" "}
+              ·{" "}
               <button
                 type="button"
                 class="hp-link-button"
                 onClick={() =>
-                  onUpdateTheme().then(
-                    () => flashNote("Updated."),
-                    (err) => flashNote(err.message),
+                  navigator.clipboard?.writeText(shareLink(s.theme)).then(
+                    () => flashNote("Share link copied."),
+                    () => flashNote(shareLink(s.theme)),
                   )
                 }
               >
-                Update
+                Copy share link
               </button>
-            )}{" "}
-            ·{" "}
-            <button
-              type="button"
-              class="hp-link-button"
-              onClick={() =>
-                navigator.clipboard?.writeText(shareLink(s.theme)).then(
-                  () => flashNote("Share link copied."),
-                  () => flashNote(shareLink(s.theme)),
-                )
-              }
+            </p>
+          )}
+          {showUrl && customTheme && <ThemeChecks findings={themeFindings} />}
+
+          <Field label="Wallpaper">
+            <select
+              value={wallpaperLink ? "link" : (s.wallpaper ?? "")}
+              onChange={(e) => {
+                const v = e.currentTarget.value;
+                setWallpaperLink(v === "link");
+                if (v !== "link") set({ wallpaper: v || undefined });
+              }}
             >
-              Copy share link
-            </button>
-          </p>
-        )}
-        {showUrl && customTheme && <ThemeChecks findings={themeFindings} />}
-
-        <Field label="Wallpaper">
-          <select
-            value={wallpaperLink ? "link" : (s.wallpaper ?? "")}
-            onChange={(e) => {
-              const v = e.currentTarget.value;
-              setWallpaperLink(v === "link");
-              if (v !== "link") set({ wallpaper: v || undefined });
-            }}
-          >
-            <option value="">None</option>
-            {wallpapers?.map((w) => (
-              <option value={w.name}>{w.name}</option>
-            ))}
-            <option value="link">From a link or path…</option>
-          </select>
-        </Field>
-        {wallpaperLink && (
-          <Field label="Image link or path">
-            <input
-              placeholder="https://example.com/sky.jpg or backgrounds/sky.jpg"
-              value={wallpaperInFolder ? "" : (s.wallpaper ?? "")}
-              onChange={(e) => set({ wallpaper: e.currentTarget.value.trim() || undefined })}
-            />
+              <option value="">None</option>
+              {wallpapers?.map((w) => (
+                <option value={w.name}>{w.name}</option>
+              ))}
+              <option value="link">From a link or path…</option>
+            </select>
           </Field>
-        )}
-        {wallpapers && !wallpaperLink && (
-          <p class="hp-field-note">
-            {wallpapers.length
-              ? "Add more by putting images in the wallpapers folder in Haepage's data folder."
-              : "Put JPEG, PNG or WebP images in the wallpapers folder in Haepage's data folder and they show up here."}
-          </p>
-        )}
+          {wallpaperLink && (
+            <Field label="Image link or path">
+              <input
+                placeholder="https://example.com/sky.jpg or backgrounds/sky.jpg"
+                value={wallpaperInFolder ? "" : (s.wallpaper ?? "")}
+                onChange={(e) => set({ wallpaper: e.currentTarget.value.trim() || undefined })}
+              />
+            </Field>
+          )}
+          {wallpapers && !wallpaperLink && (
+            <p class="hp-field-note">
+              {wallpapers.length
+                ? "Add more by putting images in the wallpapers folder in Haepage's data folder."
+                : "Put JPEG, PNG or WebP images in the wallpapers folder in Haepage's data folder and they show up here."}
+            </p>
+          )}
 
-        <Field label="Color scheme">
-          <select value={s.scheme} onChange={(e) => set({ scheme: e.currentTarget.value })}>
-            <option value="auto">Match the device</option>
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-          </select>
-        </Field>
+          <Field label="Color scheme">
+            <select value={s.scheme} onChange={(e) => set({ scheme: e.currentTarget.value })}>
+              <option value="auto">Match the device</option>
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
+          </Field>
 
-        <Field label="Effects">
-          <select value={s.fx} onChange={(e) => set({ fx: e.currentTarget.value })}>
-            <option value="auto">Automatic</option>
-            <option value="full">Full</option>
-            <option value="balanced">Balanced</option>
-            <option value="lite">Lite (fastest)</option>
-          </select>
-        </Field>
-        {s.fx === "auto" && (
-          <p class="hp-field-note">
-            {detectedFx ? `This device uses ${FX_NAMES[detectedFx]}.` : "Checking this device…"}{" "}
-            {detectedFx && (
-              <button type="button" class="hp-link-button" onClick={onRemeasureFx}>
-                Check again
-              </button>
-            )}
-          </p>
-        )}
+          <Field label="Effects">
+            <select value={s.fx} onChange={(e) => set({ fx: e.currentTarget.value })}>
+              <option value="auto">Automatic</option>
+              <option value="full">Full</option>
+              <option value="balanced">Balanced</option>
+              <option value="lite">Lite (fastest)</option>
+            </select>
+          </Field>
+          {s.fx === "auto" && (
+            <p class="hp-field-note">
+              {detectedFx ? `This device uses ${FX_NAMES[detectedFx]}.` : "Checking this device…"}{" "}
+              {detectedFx && (
+                <button type="button" class="hp-link-button" onClick={onRemeasureFx}>
+                  Check again
+                </button>
+              )}
+            </p>
+          )}
+        </Section>
 
-        <Field label="Web search">
-          <select value={s.search} onChange={(e) => set({ search: e.currentTarget.value })}>
-            {engines.map((e) => (
-              <option value={e.id}>
-                {e.name} (!{e.prefix})
-              </option>
-            ))}
-          </select>
-        </Field>
+        <Section title="Search" hint={`Web search: ${engines.find((e) => e.id === s.search)?.name ?? s.search}`}>
+          <Field label="Web search">
+            <select value={s.search} onChange={(e) => set({ search: e.currentTarget.value })}>
+              {engines.map((e) => (
+                <option value={e.id}>
+                  {e.name} (!{e.prefix})
+                </option>
+              ))}
+            </select>
+          </Field>
+          <p class="hp-field-note">Type !d, !g and so on before or after a search to pick an engine.</p>
+        </Section>
 
-        <Field label="Custom CSS">
-          <textarea
-            rows={5}
-            spellcheck={false}
-            value={s.customCss}
-            onInput={(e) => set({ customCss: e.currentTarget.value })}
-          />
-        </Field>
-        <ThemeChecks findings={cssFindings} />
 
-        <div class="hp-field">
-          <span>Widgets</span>
+        <Section
+          title="Widgets"
+          hint={config.widgets.length ? `${config.widgets.length} on the page` : "Clock, weather, feeds, API and more"}
+        >
           {config.widgets.length > 0 && (
-            <ul class="hp-connect-list">
+            <ul class="hp-settings-list">
               {config.widgets.map((w) => (
-                <li key={w.id}>
-                  <span>
-                    <strong>{w.title || WIDGET_TYPES[w.type]?.name || w.type}</strong>
-                  </span>
+                <li key={w.id} class="hp-widget-row">
+                  <strong>{w.title || WIDGET_TYPES[w.type]?.name || w.type}</strong>
                   <select
                     aria-label={`Where ${w.title || WIDGET_TYPES[w.type]?.name || w.type} goes`}
                     value={w.area ?? "header"}
@@ -374,10 +383,14 @@ export function Settings({
                   </select>
                   <button
                     type="button"
-                    class="hp-button hp-button--quiet"
+                    class="hp-icon-button hp-inbox-hide"
+                    aria-label={`Remove ${w.title || WIDGET_TYPES[w.type]?.name || w.type}`}
+                    title="Remove"
                     onClick={() => onChange({ ...config, widgets: config.widgets.filter((x) => x.id !== w.id) })}
                   >
-                    Remove
+                    <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+                      <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
                   </button>
                 </li>
               ))}
@@ -391,84 +404,103 @@ export function Settings({
               onChange({ ...config, widgets: [...config.widgets, newWidget(type, config.widgets.map((w) => w.id))] });
             }}
           >
-            <option value="">Add a widget…</option>
+            <option value="">+ Add a widget…</option>
             {Object.entries(WIDGET_TYPES).map(([type, t]) => (
               <option value={type}>{t.name}</option>
             ))}
           </select>
-        </div>
+        </Section>
 
-        {canSecrets && <Secrets />}
+        {canSecrets && (
+          <Section title="Secrets" hint="API keys for widgets, kept on the server">
+            <Secrets />
+          </Section>
+        )}
 
         {apps.length > 0 && (
-          <div class="hp-field">
-            <span>Apps</span>
-            <ul class="hp-connect-list">
-              {apps.map((a) => (
-                <li key={a.service}>
-                  <span>
-                    <strong>{a.name}</strong>
-                    <small>{a.connected ? "Connected" : KIND_NAMES[a.kind]}</small>
-                  </span>
-                  <button type="button" class="hp-button hp-button--quiet" onClick={() => onManageApp(a.service)}>
-                    {a.connected ? "Manage" : "Connect"}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <Section title="Apps" hint={`${apps.filter((a) => a.connected).length} of ${apps.length} connected`}>
+            <div class="hp-field">
+              <ul class="hp-connect-list">
+                {apps.map((a) => (
+                  <li key={a.service}>
+                    <span>
+                      <strong>{a.name}</strong>
+                      <small>{a.connected ? "Connected" : KIND_NAMES[a.kind]}</small>
+                    </span>
+                    <button type="button" class="hp-button hp-button--quiet" onClick={() => onManageApp(a.service)}>
+                      {a.connected ? "Manage" : "Connect"}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          {permission !== "unsupported" && (
+            <div class="hp-field">
+              <span>Desktop notifications</span>
+              {permission === "granted" ? (
+                <select
+                  value={s.desktopNotify === false ? "off" : "on"}
+                  onChange={(e) => set({ desktopNotify: e.currentTarget.value === "on" })}
+                >
+                  <option value="on">On, while this tab is in the background</option>
+                  <option value="off">Off</option>
+                </select>
+              ) : permission === "denied" ? (
+                <small class="hp-dialog-help">Blocked in this browser's site settings.</small>
+              ) : (
+                <button
+                  type="button"
+                  class="hp-button hp-button--quiet"
+                  onClick={async () => setPermission(await Notification.requestPermission())}
+                >
+                  Allow notifications
+                </button>
+              )}
+            </div>
+          )}
+          </Section>
         )}
 
-        {apps.length > 0 && permission !== "unsupported" && (
-          <div class="hp-field">
-            <span>Desktop notifications</span>
-            {permission === "granted" ? (
-              <select
-                value={s.desktopNotify === false ? "off" : "on"}
-                onChange={(e) => set({ desktopNotify: e.currentTarget.value === "on" })}
-              >
-                <option value="on">On, while this tab is in the background</option>
-                <option value="off">Off</option>
-              </select>
-            ) : permission === "denied" ? (
-              <small class="hp-dialog-help">Blocked in this browser's site settings.</small>
-            ) : (
-              <button
-                type="button"
-                class="hp-button hp-button--quiet"
-                onClick={async () => setPermission(await Notification.requestPermission())}
-              >
-                Allow notifications
-              </button>
-            )}
+        <Section title="Advanced" hint="Custom CSS">
+          <Field label="Custom CSS">
+            <textarea
+              rows={5}
+              spellcheck={false}
+              value={s.customCss}
+              onInput={(e) => set({ customCss: e.currentTarget.value })}
+            />
+          </Field>
+          <ThemeChecks findings={cssFindings} />
+        </Section>
+
+        <Section title="Backup" hint="Export or import haepage.json">
+
+          <div class="hp-drawer-actions">
+            <button type="button" class="hp-button" onClick={onExport}>
+              Export haepage.json
+            </button>
+            <label class="hp-button">
+              Import…
+              <input
+                type="file"
+                accept="application/json,.json"
+                hidden
+                onChange={(e) => {
+                  const file = e.currentTarget.files?.[0];
+                  e.currentTarget.value = "";
+                  if (file) onImport(file);
+                }}
+              />
+            </label>
           </div>
-        )}
+          <p class="hp-drawer-note">
+            {serverSaves
+              ? "Changes are saved on the server, for every browser and device."
+              : "Changes are saved in this browser. Export haepage.json and put it next to index.html to keep them for everyone."}
+          </p>
+        </Section>
 
         {error && <p class="hp-error">{error}</p>}
-
-        <div class="hp-drawer-actions">
-          <button type="button" class="hp-button" onClick={onExport}>
-            Export haepage.json
-          </button>
-          <label class="hp-button">
-            Import…
-            <input
-              type="file"
-              accept="application/json,.json"
-              hidden
-              onChange={(e) => {
-                const file = e.currentTarget.files?.[0];
-                e.currentTarget.value = "";
-                if (file) onImport(file);
-              }}
-            />
-          </label>
-        </div>
-        <p class="hp-drawer-note">
-          {serverSaves
-            ? "Changes are saved on the server, for every browser and device."
-            : "Changes are saved in this browser. Export haepage.json and put it next to index.html to keep them for everyone."}
-        </p>
         <p class="hp-drawer-note">
           Haepage is open source under the{" "}
           <a href="./license.txt" target="_blank" rel="noopener">

@@ -73,18 +73,27 @@ export function Card({ service, health, chip, uptime }) {
   );
 }
 
-// A newly detected service with Add and Hide buttons. The buttons sit
-// beside the card, not inside its link.
+// A newly detected service. Add and Hide sit on the card's right edge;
+// they are siblings of the card's link (buttons can't go inside a link),
+// laid over the space the card leaves for them.
 function InboxItem({ service, health, chip, actions }) {
   return (
     <div class="hp-inbox-item">
-      <Card service={service} health={health} chip={chip} />
+      <Card service={{ ...service, isNew: false }} health={health} chip={chip} />
       <div class="hp-inbox-actions">
-        <button type="button" class="hp-button" onClick={() => actions.accept(service)}>
+        <button type="button" class="hp-button hp-inbox-add" onClick={() => actions.accept(service)}>
           Add
         </button>
-        <button type="button" class="hp-button hp-button--quiet" onClick={() => actions.hide(service)}>
-          Hide
+        <button
+          type="button"
+          class="hp-icon-button hp-inbox-hide"
+          aria-label={`Hide ${service.name}`}
+          title="Hide"
+          onClick={() => actions.hide(service)}
+        >
+          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+            <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
         </button>
       </div>
     </div>

@@ -1105,22 +1105,45 @@ body::before {
 
 /* Inbox: newly detected services with Add and Hide buttons */
 
+/* New (inbox) rows: the actions sit inside the card's right edge, and the
+   card leaves room for them. */
 .hp-inbox-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  position: relative;
   min-width: 0;
 }
 
-.hp-inbox-actions {
-  display: flex;
-  gap: 6px;
-  padding: 0 8px 8px 60px;
+.hp-inbox-item > .hp-card {
+  padding-right: 112px;
 }
 
-.hp-inbox-actions .hp-button {
-  padding: 5px 14px;
-  font-size: 0.8rem;
+.hp-inbox-actions {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transform: translateY(-50%);
+}
+
+.hp-inbox-add {
+  padding: 6px 16px;
+  font-size: 0.85rem;
+}
+
+.hp-inbox-hide {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 50%;
+  color: var(--on-surface-muted);
+}
+
+.hp-inbox-hide:hover {
+  background: var(--surface-variant);
+  color: var(--on-surface);
 }
 
 .hp-card .hp-badge {
@@ -1985,4 +2008,99 @@ li:hover > .hp-w-remove,
 
 .hp-w-system .is-hot strong {
   color: var(--status-down);
+}
+
+/* Settings sections: collapsible groups with a one-line summary. */
+.hp-section {
+  border-top: 1px solid var(--separator, var(--surface-variant));
+}
+
+.hp-section:last-of-type {
+  border-bottom: 1px solid var(--separator, var(--surface-variant));
+}
+
+.hp-section > summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 12px;
+  padding: 14px 2px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.hp-section > summary::-webkit-details-marker {
+  display: none;
+}
+
+.hp-section > summary::after {
+  content: "";
+  grid-row: 1 / 3;
+  grid-column: 2;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--on-surface-muted);
+  border-bottom: 2px solid var(--on-surface-muted);
+  transform: rotate(45deg);
+  transition: transform calc(150ms * var(--motion)) var(--ease);
+}
+
+.hp-section[open] > summary::after {
+  transform: rotate(225deg);
+}
+
+.hp-section-title {
+  font-weight: 600;
+}
+
+.hp-section > summary small {
+  overflow: hidden;
+  font-size: 0.8rem;
+  color: var(--on-surface-muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.hp-section-body {
+  padding: 2px 2px 16px;
+}
+
+.hp-section-body > .hp-field:last-child,
+.hp-section-body > .hp-field-note:last-child {
+  margin-bottom: 0;
+}
+
+/* Widgets list in Settings: name above, place and remove below. */
+.hp-settings-list {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 10px;
+  padding: 0;
+  list-style: none;
+}
+
+.hp-widget-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px 8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-variant);
+}
+
+.hp-widget-row strong {
+  grid-column: 1 / -1;
+  font-size: 0.9rem;
+}
+
+.hp-widget-row select,
+.hp-section-body > select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
 }
