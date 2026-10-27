@@ -80,7 +80,7 @@ Haepage can be installed like an app on phones and computers (in Chrome or Edge:
 
 It also keeps working when the server can't be reached: the page shows what the server last sent, with a notice, and catches up by itself when the server is back. Changes can't be saved while it's offline.
 
-Both need the page to be opened over **https://** (or on `localhost`); browsers don't allow them on plain `http://` addresses. The easiest way at home is `tailscale serve`, which gives Haepage an https address on your tailnet.
+Both need the page to be opened over **https://** (or on `localhost`); browsers don't allow them on plain `http://` addresses. The easiest way at home is `tailscale serve`, which gives Haepage an https address on your tailnet ([Tailscale guide](tailscale.md)).
 
 ## How detection works
 

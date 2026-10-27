@@ -6,4 +6,5 @@ Guides and documentation for installing, configuring, theming, and using Haepage
 - [Static mode](static-mode.md)
 - [Docker discovery](docker.md)
 - [Media app integrations](integrations.md)
-- [Themes](themes.md)
+- [Themes and wallpapers](themes.md)
+- [Tailscale](tailscale.md)
