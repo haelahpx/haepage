@@ -8,6 +8,9 @@ export const WIDGET_TYPES = {
   bookmarks: { name: "Bookmarks", defaults: { links: [] }, load: () => import("./bookmarks.jsx") },
   notes: { name: "Notes", defaults: { text: "" }, load: () => import("./notes.jsx") },
   todo: { name: "To-do", defaults: { items: [] }, load: () => import("./todo.jsx") },
+  rss: { name: "News feed (RSS)", defaults: { url: "", limit: 8 }, load: () => import("./rss.jsx"), needs: "widgets.proxy" },
+  calendar: { name: "Calendar", defaults: { url: "", days: 14 }, load: () => import("./calendar.jsx"), needs: "widgets.proxy" },
+  releases: { name: "Releases", defaults: { repos: [] }, load: () => import("./releases.jsx"), needs: "widgets.proxy" },
   api: { name: "API (no code)", defaults: { url: "", headers: {}, display: "stat", fields: [] }, load: () => import("./api.jsx"), needs: "widgets.proxy" },
 };
 
