@@ -52,6 +52,7 @@ func run(args []string) error {
 	addr := flags.String("addr", envOr("HAEPAGE_ADDR", ":8080"), "listen address")
 	dataDir := flags.String("data", envOr("HAEPAGE_DATA", "./data"), "data folder (config, secrets, cache)")
 	configPath := flags.String("config", envOr("HAEPAGE_CONFIG", ""), "config file (default <data>/haepage.json)")
+	metricsOn := flags.Bool("metrics", envOr("HAEPAGE_METRICS", "") == "true", "serve Prometheus metrics at /metrics")
 	noSystem := flags.Bool("no-system", false, "turn off the server stats tile and /api/system")
 	dockerHost := flags.String("docker", envOr("DOCKER_HOST", "unix:///var/run/docker.sock"), "Docker socket or socket proxy (unix:// or tcp://)")
 	noDocker := flags.Bool("no-docker", false, "turn off Docker discovery")
@@ -175,6 +176,7 @@ func run(args []string) error {
 	opts.Themes = &themes.Remote{Dir: filepath.Join(*dataDir, "cache", "themes"), Client: guard.Client(10 * time.Second)}
 	opts.Secrets = secrets
 	opts.History = hist
+	opts.Metrics = *metricsOn
 	opts.Widgets = &proxy.Widgets{
 		Config:  cfg.Config,
 		Secrets: secrets,

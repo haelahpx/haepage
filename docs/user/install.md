@@ -71,6 +71,7 @@ Every setting is a flag or an environment variable:
 | `--no-ports` | | | Turn off listening-port discovery |
 | `--no-health` | | | Turn off server-side health checks |
 | `--no-system` | | | Turn off the server stats tile |
+| `--metrics` | `HAEPAGE_METRICS=true` | off | Serve metrics for monitoring tools at `/metrics` ([Metrics](metrics.md)) |
 | `--log-level` | `HAEPAGE_LOG_LEVEL` | `info` | `debug`, `info`, `warn` or `error` |
 | `--log-format` | `HAEPAGE_LOG_FORMAT` | `text` | `text` or `json` |
 
