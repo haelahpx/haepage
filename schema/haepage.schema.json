@@ -18,6 +18,11 @@
         "search": { "type": "string", "description": "Default search engine id" },
         "customCss": { "type": "string" },
         "inbox": { "enum": ["inbox", "auto"] },
+        "proxyAllow": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Host names on a private network that the server may fetch from (theme links, widget APIs). Hosts of configured services are always allowed."
+        },
         "desktopNotify": { "type": "boolean", "description": "Show desktop notifications for app activity while the tab is in the background" }
       }
     },

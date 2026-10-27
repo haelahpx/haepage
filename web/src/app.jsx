@@ -10,7 +10,7 @@ import { resolveLink } from "./links.js";
 import { detectMode } from "./mode.js";
 import { allEngines, findEngine } from "./search/engines.js";
 import { buildIndex } from "./search/index.js";
-import { applyCustomCss, applyTheme } from "./theme/apply.js";
+import { applyCustomCss, applyTheme, importTheme, isThemeUrl, themeFromLink } from "./theme/apply.js";
 import { hardLite, measureFrames, readMeasuredFx, resolveFx, resolveScheme, saveMeasuredFx, tierFromFrames } from "./theme/fx.js";
 import { Bento } from "./ui/Bento.jsx";
 import { Group } from "./ui/Card.jsx";
@@ -36,9 +36,11 @@ function downloadJson(name, data) {
 
 // Applies scheme, effect tier, theme and custom CSS. `settings` is null
 // until the config loads, so the cached theme isn't replaced by a default.
-function useAppearance(settings) {
+// `serverThemes` loads link themes through the server's pinned copy.
+function useAppearance(settings, serverThemes) {
   const [prefersDark, setPrefersDark] = useState(darkQuery.matches);
   const [themeError, setThemeError] = useState(null);
+  const [themeVersion, setThemeVersion] = useState(0);
   const [measuredFx, setMeasuredFx] = useState(() => readMeasuredFx(browserStorage()));
   const { scheme, fx, customCss, theme, title, style } = settings ?? {};
   const ready = settings !== null;
@@ -89,20 +91,26 @@ function useAppearance(settings) {
   useEffect(() => {
     if (!ready) return undefined;
     let current = true;
-    applyTheme(theme)
+    applyTheme(theme, { server: serverThemes, force: themeVersion > 0 })
       .then(() => current && setThemeError(null))
       .catch((err) => current && setThemeError(err.message));
     return () => {
       current = false;
     };
-  }, [ready, theme]);
+  }, [ready, theme, serverThemes, themeVersion]);
+
+  // Fetches the link theme again (it is pinned until then) and reapplies it.
+  const updateTheme = useCallback(async () => {
+    if (serverThemes) await importTheme(theme, { refresh: true });
+    setThemeVersion((v) => v + 1);
+  }, [serverThemes, theme]);
 
   useEffect(() => {
     if (ready) document.title = title || "Haepage";
   }, [ready, title]);
 
   const detectedFx = ready ? resolveFx("auto", navigator, motionQuery.matches, measuredFx) : null;
-  return { themeError, detectedFx: measuring ? null : detectedFx, remeasureFx };
+  return { themeError, detectedFx: measuring ? null : detectedFx, remeasureFx, updateTheme };
 }
 
 // Probes each service's chosen URL every minute while the tab is visible.
@@ -258,7 +266,19 @@ export function App() {
 
   const serverConfig = state?.source === "server";
   const config = state?.config ?? emptyConfig();
-  const { themeError, detectedFx, remeasureFx } = useAppearance(state ? config.settings : null);
+  const serverThemes = mode?.capabilities.has("themes.import") ?? false;
+  const { themeError, detectedFx, remeasureFx, updateTheme } = useAppearance(state ? config.settings : null, serverThemes);
+
+  // A shared link (?theme=https://…) offers a theme; nothing changes until
+  // the visitor accepts.
+  const [offeredTheme, setOfferedTheme] = useState(() => themeFromLink(location.search));
+  const dismissOffer = useCallback(() => {
+    setOfferedTheme(null);
+    const url = new URL(location.href);
+    url.searchParams.delete("theme");
+    history.replaceState(history.state, "", url);
+  }, []);
+  const offer = offeredTheme && state && offeredTheme !== config.settings.theme ? offeredTheme : null;
 
   const reloadFromServer = useCallback(async () => {
     const loaded = await loadServerConfig();
@@ -444,6 +464,29 @@ export function App() {
           {notice}
         </p>
       )}
+      {offer && (
+        <div class="hp-banner" role="dialog" aria-label="Theme from a link">
+          <span>
+            This link offers a theme from <strong>{new URL(offer).host}</strong>.{" "}
+            {serverConfig ? "Using it changes the page for everyone." : "Using it changes the page in this browser."}
+          </span>
+          <span class="hp-banner-actions">
+            <button
+              type="button"
+              class="hp-button"
+              onClick={() => {
+                update({ ...config, settings: { ...config.settings, theme: offer } });
+                dismissOffer();
+              }}
+            >
+              Use theme
+            </button>
+            <button type="button" class="hp-button hp-button--quiet" onClick={dismissOffer}>
+              Not now
+            </button>
+          </span>
+        </div>
+      )}
       {state.source === "draft" && (
         <div class="hp-banner">
           <span>You have changes saved only in this browser.</span>
@@ -492,6 +535,8 @@ export function App() {
           onExport={() => downloadJson("haepage.json", config)}
           onImport={importFile}
           detectedFx={detectedFx}
+          onUpdateTheme={isThemeUrl(config.settings.theme) ? updateTheme : null}
+          serverThemes={serverThemes}
           onRemeasureFx={remeasureFx}
           apps={apps}
           onManageApp={(id) => {

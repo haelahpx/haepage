@@ -23,9 +23,11 @@ import (
 	"github.com/haelahpx/haepage/internal/discovery"
 	"github.com/haelahpx/haepage/internal/health"
 	"github.com/haelahpx/haepage/internal/integrations"
+	"github.com/haelahpx/haepage/internal/proxy"
 	"github.com/haelahpx/haepage/internal/server"
 	"github.com/haelahpx/haepage/internal/store"
 	"github.com/haelahpx/haepage/internal/system"
+	"github.com/haelahpx/haepage/internal/themes"
 	"github.com/haelahpx/haepage/internal/version"
 	"github.com/haelahpx/haepage/web"
 )
@@ -132,6 +134,8 @@ func run(args []string) error {
 	if !*noSystem {
 		opts.System = system.NewSampler("/", *dataDir)
 	}
+	guard := &proxy.Guard{AllowPrivate: func(host string) bool { return cfg.Config().AllowsPrivateHost(host) }}
+	opts.Themes = &themes.Remote{Dir: filepath.Join(*dataDir, "cache", "themes"), Client: guard.Client(10 * time.Second)}
 
 	srv := &http.Server{
 		Addr:              *addr,

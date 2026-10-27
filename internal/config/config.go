@@ -10,8 +10,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 )
@@ -66,7 +68,8 @@ type Override struct {
 }
 
 type Settings struct {
-	Inbox string `json:"inbox,omitempty"`
+	Inbox      string   `json:"inbox,omitempty"`
+	ProxyAllow []string `json:"proxyAllow,omitempty"` // private hosts server-side fetches may reach
 }
 
 // Config is the part of haepage.json the server needs. The file itself is
@@ -330,4 +333,27 @@ func (s *Store) Watch(ctx context.Context, interval time.Duration, onError func(
 			s.changed(etag)
 		}
 	}
+}
+
+// AllowsPrivateHost reports whether a server-side fetch may reach host on
+// a private network: it belongs to a configured service or is listed in
+// settings.proxyAllow (IMPLEMENTATION.md §7.7).
+func (c Config) AllowsPrivateHost(host string) bool {
+	host = strings.ToLower(strings.TrimSuffix(host, "."))
+	if host == "" {
+		return false
+	}
+	for _, h := range c.Settings.ProxyAllow {
+		if strings.EqualFold(strings.TrimSuffix(h, "."), host) {
+			return true
+		}
+	}
+	for _, s := range c.Services {
+		for _, raw := range []string{s.URLs.LAN, s.URLs.Tailscale, s.URLs.Public} {
+			if u, err := url.Parse(raw); err == nil && strings.EqualFold(u.Hostname(), host) {
+				return true
+			}
+		}
+	}
+	return false
 }

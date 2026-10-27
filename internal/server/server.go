@@ -11,6 +11,7 @@ import (
 	"github.com/haelahpx/haepage/internal/integrations"
 	"github.com/haelahpx/haepage/internal/store"
 	"github.com/haelahpx/haepage/internal/system"
+	"github.com/haelahpx/haepage/internal/themes"
 )
 
 // APIVersion is the version of the /api contract. It changes only on a
@@ -28,6 +29,7 @@ type Options struct {
 	Detect       bool                  // discovery is running
 	Integrations *integrations.Manager // nil turns integrations off
 	Health       bool                  // the server runs health checks
+	Themes       *themes.Remote        // theme import by link; nil turns it off
 }
 
 // SystemReader provides host stats.
@@ -87,6 +89,11 @@ func New(opts Options) http.Handler {
 	}
 	if opts.Health {
 		capabilities = append(capabilities, "health.full")
+	}
+	if opts.Themes != nil {
+		capabilities = append(capabilities, "themes.import")
+		mux.HandleFunc("POST /api/themes/import", newLimiter(10).wrap(importTheme(opts.Themes)))
+		mux.HandleFunc("GET /api/themes/remote", remoteTheme(opts.Themes))
 	}
 	mux.HandleFunc("GET /api/ping", ping(opts.Version, capabilities))
 	mux.HandleFunc("GET /api/", func(w http.ResponseWriter, r *http.Request) {
