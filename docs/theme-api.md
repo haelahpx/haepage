@@ -96,6 +96,8 @@ Style both layouts. In `bento`, groups are tiles (`.hp-bento .hp-group.hp-tile`)
 | Status | `hp-status` · `hp-status--up` · `hp-status--down` · `hp-status--unknown` · `hp-status-label` · `hp-status-label--up` · `hp-status-label--down` (hidden unless a theme shows it) · `hp-badge` · `hp-badge--new` |
 | Controls | `hp-button` · `hp-button--quiet` · `hp-icon-button` · `hp-link` · `hp-field` · `hp-error` |
 | Panels | `hp-banner` · `hp-banner--error` · `hp-drawer` · `hp-drawer-backdrop` · `hp-palette` · `hp-toast` |
+| Integrations | `hp-chip` · `hp-chip--live` · `hp-chip--info` · `hp-chip--warn` · `hp-tile--media` · `hp-integrations` (Simple layout row) · `hp-media-list` · `hp-media` · `hp-media--compact` · `hp-media-poster` · `hp-media-poster--empty` · `hp-media-body` · `hp-media-title` · `hp-media-sub` · `hp-media-meta` · `hp-activity` · `hp-activity-title` · `hp-activity-meta` · `hp-connect-list` · `hp-connect-intro` |
+| Dialogs and pop-ups | `hp-dialog` · `hp-dialog-backdrop` · `hp-dialog-help` · `hp-dialog-ok` · `hp-copy` · `hp-toasts` · `hp-toast` · `hp-toast-image` · `hp-toast-body` · `hp-toast-title` · `hp-toast-detail` |
 | Widgets | `hp-widget` · `hp-widget-title` · `hp-widget-body` |
 
 `hp-avatar` is the colored letter shown when a service has no icon, and `hp-group-icon` is the icon square in a bento group header. Both read `--avatar-hue` (0 to 359), which Haepage sets per service or group.

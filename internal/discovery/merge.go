@@ -35,6 +35,7 @@ func Merge(cfg config.Config, detected []Detected, isLocal func(host string) boo
 			Group:       m.Group,
 			Description: m.Description,
 			URLs:        store.URLs(m.URLs),
+			Integration: m.Integration,
 		}
 		applyCheck(&s, m.Check, firstNonEmpty(m.URLs.LAN, m.URLs.Public, m.URLs.Tailscale))
 		for _, u := range []string{m.URLs.LAN, m.URLs.Tailscale, m.URLs.Public} {
@@ -61,6 +62,7 @@ func Merge(cfg config.Config, detected []Detected, isLocal func(host string) boo
 			Description: d.Description,
 			URLs:        d.URLs,
 			Running:     d.Running,
+			Integration: d.Integration,
 		}
 		if o.URLs != nil {
 			s.URLs = store.URLs(*o.URLs)
@@ -87,7 +89,11 @@ func Merge(cfg config.Config, detected []Detected, isLocal func(host string) boo
 		found = append(found, s)
 	}
 	sort.SliceStable(found, func(i, j int) bool { return strings.ToLower(found[i].Name) < strings.ToLower(found[j].Name) })
-	return append(out, found...)
+	out = append(out, found...)
+	for i := range out {
+		out[i].NoCheck = out[i].CheckType == "none"
+	}
+	return out
 }
 
 func applyCheck(s *store.Service, c *config.Check, target string) {

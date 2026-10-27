@@ -36,7 +36,9 @@ type Service struct {
 	Description string  `json:"description,omitempty"`
 	URLs        URLs    `json:"urls"`
 	IsNew       bool    `json:"isNew,omitempty"`
-	Running     *bool   `json:"running,omitempty"` // containers only
+	Running     *bool   `json:"running,omitempty"`     // containers only
+	Integration string  `json:"integration,omitempty"` // built-in integration kind, e.g. "jellyfin"
+	NoCheck     bool    `json:"noCheck,omitempty"`     // health checks are turned off
 	Health      *Health `json:"health,omitempty"`
 
 	// Check settings stay on the server.
@@ -60,16 +62,20 @@ type subscriber struct {
 // Registry is the current service list. Every change is published as an
 // event; subscribers that fall behind are dropped and must reconnect.
 type Registry struct {
-	mu       sync.RWMutex
-	services map[string]Service
-	order    []string
-	subs     map[*subscriber]struct{}
+	mu           sync.RWMutex
+	services     map[string]Service
+	order        []string
+	subs         map[*subscriber]struct{}
+	integrations map[string]any // latest integration state per service
+	activity     []any          // newest last, at most activityLimit
 }
+
+const activityLimit = 100
 
 const subscriberBuffer = 64
 
 func NewRegistry() *Registry {
-	return &Registry{services: map[string]Service{}, subs: map[*subscriber]struct{}{}}
+	return &Registry{services: map[string]Service{}, subs: map[*subscriber]struct{}{}, integrations: map[string]any{}}
 }
 
 // Subscribe returns a channel of events and a function to stop. The
@@ -172,6 +178,48 @@ func bucket(ms int64) int {
 		return 2
 	}
 	return 3
+}
+
+// SetIntegration records the latest state of a service's integration and
+// publishes it. A nil state removes it (disconnected).
+func (r *Registry) SetIntegration(id string, state any) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if state == nil {
+		delete(r.integrations, id)
+		r.publishLocked(Event{Type: "integration.remove", Data: map[string]string{"service": id}})
+		return
+	}
+	r.integrations[id] = state
+	r.publishLocked(Event{Type: "integration", Data: state})
+}
+
+// AddActivity appends an activity event (a new request, a finished
+// download, ...) and publishes it.
+func (r *Registry) AddActivity(a any) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.activity = append(r.activity, a)
+	if len(r.activity) > activityLimit {
+		r.activity = r.activity[len(r.activity)-activityLimit:]
+	}
+	r.publishLocked(Event{Type: "activity", Data: a})
+}
+
+// State is everything a new subscriber needs: services, integration
+// states and recent activity.
+func (r *Registry) State() map[string]any {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	services := make([]Service, 0, len(r.order))
+	for _, id := range r.order {
+		services = append(services, r.services[id])
+	}
+	integrations := make([]any, 0, len(r.integrations))
+	for _, v := range r.integrations {
+		integrations = append(integrations, v)
+	}
+	return map[string]any{"services": services, "integrations": integrations, "activity": append([]any{}, r.activity...)}
 }
 
 // Snapshot returns the services in list order.

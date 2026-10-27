@@ -164,3 +164,26 @@ func TestLoadSecrets(t *testing.T) {
 		t.Errorf("got %v %v", got, err)
 	}
 }
+
+func TestSecretsStore(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "secrets.json")
+	s, err := OpenSecrets(path)
+	if err != nil || s.Get("x") != "" {
+		t.Fatalf("open: %v", err)
+	}
+	if err := s.Set("int:a", "key-1"); err != nil {
+		t.Fatal(err)
+	}
+	info, _ := os.Stat(path)
+	if info.Mode().Perm() != 0o600 {
+		t.Errorf("mode = %v, want 0600", info.Mode().Perm())
+	}
+	again, _ := OpenSecrets(path)
+	if again.Get("int:a") != "key-1" {
+		t.Error("secret not persisted")
+	}
+	s.Set("int:a", "")
+	if again, _ := OpenSecrets(path); again.Get("int:a") != "" {
+		t.Error("secret not deleted")
+	}
+}

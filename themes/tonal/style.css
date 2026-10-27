@@ -307,3 +307,21 @@
   background: var(--surface-variant);
   border-radius: 14px;
 }
+
+/* Integrations */
+.hp-chip--info {
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+}
+
+.hp-dialog,
+.hp-toast {
+  background: var(--surface);
+  border-radius: 28px;
+}
+
+.hp-tile--media .hp-media {
+  padding: 8px;
+  border-radius: 16px;
+  background: var(--surface-low);
+}

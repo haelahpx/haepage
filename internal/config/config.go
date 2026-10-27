@@ -53,6 +53,7 @@ type Service struct {
 	Description string `json:"description,omitempty"`
 	URLs        URLs   `json:"urls"`
 	Check       *Check `json:"check,omitempty"`
+	Integration string `json:"integration,omitempty"` // e.g. "jellyfin", to connect a manual service
 }
 
 type Override struct {
@@ -329,21 +330,4 @@ func (s *Store) Watch(ctx context.Context, interval time.Duration, onError func(
 			s.changed(etag)
 		}
 	}
-}
-
-// LoadSecrets reads secrets.json, a flat {"name": "value"} map. A missing
-// file means no secrets. Secrets are never sent to the browser.
-func LoadSecrets(path string) (map[string]string, error) {
-	raw, err := os.ReadFile(path)
-	if errors.Is(err, os.ErrNotExist) {
-		return map[string]string{}, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-	secrets := map[string]string{}
-	if err := json.Unmarshal(raw, &secrets); err != nil {
-		return nil, fmt.Errorf("%s: %w", path, err)
-	}
-	return secrets, nil
 }

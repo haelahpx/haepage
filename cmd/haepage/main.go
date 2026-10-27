@@ -22,6 +22,7 @@ import (
 	"github.com/haelahpx/haepage/internal/config"
 	"github.com/haelahpx/haepage/internal/discovery"
 	"github.com/haelahpx/haepage/internal/health"
+	"github.com/haelahpx/haepage/internal/integrations"
 	"github.com/haelahpx/haepage/internal/server"
 	"github.com/haelahpx/haepage/internal/store"
 	"github.com/haelahpx/haepage/internal/system"
@@ -117,9 +118,16 @@ func run(args []string) error {
 		go sched.Run(ctx)
 	}
 
+	secrets, err := config.OpenSecrets(filepath.Join(*dataDir, "secrets.json"))
+	if err != nil {
+		return err
+	}
+	integ := &integrations.Manager{Registry: reg, Secrets: secrets, CheckHost: *checkHost, Kinds: integrations.Kinds(&http.Client{})}
+	go integ.Run(ctx)
+
 	opts := server.Options{
 		Version: version.Version, Static: static, Dev: *dev,
-		Config: cfg, Registry: reg, Detect: detect, Health: !*noHealth,
+		Config: cfg, Registry: reg, Detect: detect, Health: !*noHealth, Integrations: integ,
 	}
 	if !*noSystem {
 		opts.System = system.NewSampler("/", *dataDir)

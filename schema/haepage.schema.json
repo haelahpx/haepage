@@ -17,7 +17,8 @@
         "fx": { "enum": ["auto", "full", "balanced", "lite"] },
         "search": { "type": "string", "description": "Default search engine id" },
         "customCss": { "type": "string" },
-        "inbox": { "enum": ["inbox", "auto"] }
+        "inbox": { "enum": ["inbox", "auto"] },
+        "desktopNotify": { "type": "boolean", "description": "Show desktop notifications for app activity while the tab is in the background" }
       }
     },
     "groups": { "type": "array", "items": { "$ref": "#/$defs/group" } },
@@ -86,7 +87,11 @@
         "tags": { "type": "array", "items": { "type": "string" } },
         "urls": { "$ref": "#/$defs/urls" },
         "check": { "$ref": "#/$defs/check" },
-        "public": { "type": "boolean" }
+        "public": { "type": "boolean" },
+        "integration": {
+          "enum": ["jellyfin", "seerr", "radarr", "sonarr"],
+          "description": "Built-in integration for live data from this app"
+        }
       }
     },
     "override": {

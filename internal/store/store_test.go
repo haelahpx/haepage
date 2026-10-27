@@ -138,3 +138,29 @@ func TestStoppedHealthClearsWhenRunningAgain(t *testing.T) {
 		t.Errorf("real check result dropped: %+v", s.Health)
 	}
 }
+
+func TestIntegrationsAndActivity(t *testing.T) {
+	r := NewRegistry()
+	ch, stop := r.Subscribe()
+	defer stop()
+	r.SetIntegration("a", map[string]string{"service": "a"})
+	r.AddActivity("one")
+	r.SetIntegration("a", nil)
+	if got := types(drain(ch)); len(got) != 3 || got[0] != "integration" || got[1] != "activity" || got[2] != "integration.remove" {
+		t.Errorf("events = %v", got)
+	}
+	if n := len(r.State()["integrations"].([]any)); n != 0 {
+		t.Errorf("integrations after remove = %d", n)
+	}
+}
+
+func TestActivityIsCapped(t *testing.T) {
+	r := NewRegistry()
+	for i := 0; i < activityLimit+5; i++ {
+		r.AddActivity(i)
+	}
+	act := r.State()["activity"].([]any)
+	if len(act) != activityLimit || act[0] != 5 {
+		t.Errorf("activity = %d items, first %v; want %d, first 5", len(act), act[0], activityLimit)
+	}
+}

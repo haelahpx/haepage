@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/haelahpx/haepage/internal/config"
+	"github.com/haelahpx/haepage/internal/integrations"
 	"github.com/haelahpx/haepage/internal/store"
 	"github.com/haelahpx/haepage/internal/system"
 )
@@ -18,14 +19,15 @@ const APIVersion = 1
 
 // Options configures the HTTP handler.
 type Options struct {
-	Version  string
-	Static   fs.FS           // frontend build output, rooted at the folder holding index.html
-	Dev      bool            // turn off browser caching
-	System   SystemReader    // host stats for /api/system; nil turns the endpoint off
-	Config   *config.Store   // haepage.json; nil turns the config API off
-	Registry *store.Registry // merged services; nil turns services and events off
-	Detect   bool            // discovery is running
-	Health   bool            // the server runs health checks
+	Version      string
+	Static       fs.FS                 // frontend build output, rooted at the folder holding index.html
+	Dev          bool                  // turn off browser caching
+	System       SystemReader          // host stats for /api/system; nil turns the endpoint off
+	Config       *config.Store         // haepage.json; nil turns the config API off
+	Registry     *store.Registry       // merged services; nil turns services and events off
+	Detect       bool                  // discovery is running
+	Integrations *integrations.Manager // nil turns integrations off
+	Health       bool                  // the server runs health checks
 }
 
 // SystemReader provides host stats.
@@ -71,6 +73,14 @@ func New(opts Options) http.Handler {
 		if opts.Config != nil {
 			mux.HandleFunc("PUT /api/overrides/{id...}", putOverride(opts.Config, opts.Registry))
 		}
+	}
+	if opts.Integrations != nil {
+		capabilities = append(capabilities, "integrations")
+		mux.HandleFunc("GET /api/integrations", listIntegrations(opts.Integrations))
+		mux.HandleFunc("POST /api/integrations/connect", connectIntegration(opts.Integrations))
+		mux.HandleFunc("POST /api/integrations/disconnect", disconnectIntegration(opts.Integrations))
+		mux.HandleFunc("GET /api/integrations/image", integrationImage(opts.Integrations))
+		mux.HandleFunc("POST /api/hooks/{token}", webhook(opts.Integrations))
 	}
 	if opts.Detect {
 		capabilities = append(capabilities, "services.detect")
