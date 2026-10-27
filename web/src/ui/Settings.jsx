@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { KIND_NAMES } from "../integration.js";
 import { BUILTIN_THEMES, isThemeUrl } from "../theme/apply.js";
 
+const FX_NAMES = { full: "Full", balanced: "Balanced", lite: "Lite" };
+
 function Field({ label, children }) {
   return (
     <label class="hp-field">
@@ -11,7 +13,20 @@ function Field({ label, children }) {
   );
 }
 
-export function Settings({ config, engines, serverSaves, error, apps = [], onManageApp, onChange, onExport, onImport, onClose }) {
+export function Settings({
+  config,
+  engines,
+  serverSaves,
+  error,
+  detectedFx,
+  onRemeasureFx,
+  apps = [],
+  onManageApp,
+  onChange,
+  onExport,
+  onImport,
+  onClose,
+}) {
   const s = config.settings;
   const set = (patch) => onChange({ ...config, settings: { ...s, ...patch } });
   const customTheme = isThemeUrl(s.theme);
@@ -97,6 +112,16 @@ export function Settings({ config, engines, serverSaves, error, apps = [], onMan
             <option value="lite">Lite (fastest)</option>
           </select>
         </Field>
+        {s.fx === "auto" && (
+          <p class="hp-field-note">
+            {detectedFx ? `This device uses ${FX_NAMES[detectedFx]}.` : "Checking this device…"}{" "}
+            {detectedFx && (
+              <button type="button" class="hp-link-button" onClick={onRemeasureFx}>
+                Check again
+              </button>
+            )}
+          </p>
+        )}
 
         <Field label="Web search">
           <select value={s.search} onChange={(e) => set({ search: e.currentTarget.value })}>

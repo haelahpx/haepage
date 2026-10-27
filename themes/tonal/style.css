@@ -77,9 +77,14 @@
   border-radius: 50% 50% 22% 22%;
 }
 
-/* Cards: tonal, no shadows, springy press that rounds the corners. */
+/* Cards: tonal, no shadows, springy press that rounds the corners.
+   Tiers: full morphs the corners and ripples; balanced ripples and
+   springs; lite only changes color. */
 .hp-card {
-  border-radius: var(--radius);
+  --card-r: var(--radius);
+  --card-r-pressed: 30px;
+  position: relative;
+  border-radius: var(--card-r);
   transition:
     transform calc(320ms * var(--motion)) var(--spring),
     border-radius calc(320ms * var(--motion)) var(--spring),
@@ -93,20 +98,22 @@
 
 .hp-card:active {
   transform: scale(0.97);
-  border-radius: 30px;
+  border-radius: var(--card-r-pressed);
 }
 
 .hp-bento .hp-card {
+  --card-r: 18px;
+  --card-r-pressed: 28px;
   background: var(--surface-low);
-  border-radius: 18px;
 }
 
 .hp-bento .hp-card:hover {
   background: var(--surface-variant);
 }
 
+/* Beats base.css's bento hover reset, which would cancel the press. */
 .hp-bento .hp-card:active {
-  border-radius: 28px;
+  transform: scale(0.97);
 }
 
 .hp-group-title {
@@ -127,7 +134,6 @@
 
 /* Hero: primary container with a big two-tone clock. */
 .hp-tile--hero {
-  overflow: hidden;
   color: var(--on-primary-container);
   background:
     linear-gradient(90deg, var(--primary-container) 45%, transparent 80%),
@@ -279,11 +285,74 @@
 
 /* Buttons change shape when pressed. */
 .hp-button {
+  position: relative;
+  overflow: hidden;
   transition: border-radius calc(300ms * var(--motion)) var(--spring);
 }
 
-.hp-button:active {
+:root[data-fx="full"] .hp-button:active {
   border-radius: 10px;
+}
+
+/* Ripple: a state-layer circle that grows from the press point when the
+   press ends. Only transform and opacity animate. Haepage sets
+   --press-x and --press-y on pointerdown. */
+.hp-card::after,
+.hp-button::after,
+.hp-result::after {
+  content: "";
+  position: absolute;
+  top: var(--press-y, 50%);
+  left: var(--press-x, 50%);
+  width: max(250%, 320px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: currentColor;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(1);
+  transition:
+    transform calc(550ms * var(--motion)) var(--ease),
+    opacity calc(450ms * var(--motion)) var(--ease);
+}
+
+.hp-card:active::after,
+.hp-button:active::after,
+.hp-result:active::after {
+  opacity: 0.12;
+  transform: translate(-50%, -50%) scale(0);
+  transition: none;
+}
+
+.hp-result {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Balanced and lite: no corner morphs (they repaint the whole card). */
+:root:not([data-fx="full"]) .hp-card {
+  --card-r-pressed: var(--card-r);
+}
+
+/* Lite: color changes only. */
+:root[data-fx="lite"] .hp-card,
+:root[data-fx="lite"] .hp-button {
+  transition: background-color calc(150ms * var(--motion)) var(--ease);
+}
+
+:root[data-fx="lite"] .hp-card:active {
+  transform: none;
+}
+
+:root[data-fx="lite"] .hp-card::after,
+:root[data-fx="lite"] .hp-button::after,
+:root[data-fx="lite"] .hp-result::after {
+  content: none;
+}
+
+:root[data-fx="lite"] .hp-search-results {
+  box-shadow: none;
+  outline: 1px solid var(--surface-variant);
 }
 
 .hp-button--quiet {

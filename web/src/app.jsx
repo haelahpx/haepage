@@ -11,7 +11,7 @@ import { detectMode } from "./mode.js";
 import { allEngines, findEngine } from "./search/engines.js";
 import { buildIndex } from "./search/index.js";
 import { applyCustomCss, applyTheme } from "./theme/apply.js";
-import { resolveFx, resolveScheme } from "./theme/fx.js";
+import { hardLite, measureFrames, readMeasuredFx, resolveFx, resolveScheme, saveMeasuredFx, tierFromFrames } from "./theme/fx.js";
 import { Bento } from "./ui/Bento.jsx";
 import { Group } from "./ui/Card.jsx";
 import { ConnectDialog } from "./ui/Connect.jsx";
@@ -39,6 +39,7 @@ function downloadJson(name, data) {
 function useAppearance(settings) {
   const [prefersDark, setPrefersDark] = useState(darkQuery.matches);
   const [themeError, setThemeError] = useState(null);
+  const [measuredFx, setMeasuredFx] = useState(() => readMeasuredFx(browserStorage()));
   const { scheme, fx, customCss, theme, title, style } = settings ?? {};
   const ready = settings !== null;
 
@@ -57,8 +58,29 @@ function useAppearance(settings) {
   }, [ready, scheme, prefersDark]);
 
   useEffect(() => {
-    if (ready) root.dataset.fx = resolveFx(fx, navigator, motionQuery.matches);
-  }, [ready, fx]);
+    if (ready) root.dataset.fx = resolveFx(fx, navigator, motionQuery.matches, measuredFx);
+  }, [ready, fx, measuredFx]);
+
+  // Measures this device once, after the first paint, while fx is "auto".
+  const measuring = ready && fx === "auto" && measuredFx === null && !hardLite(navigator, motionQuery.matches);
+  useEffect(() => {
+    if (!measuring) return undefined;
+    let current = true;
+    measureFrames().then((intervals) => {
+      const tier = tierFromFrames(intervals);
+      if (!current || !tier) return;
+      saveMeasuredFx(browserStorage(), tier);
+      setMeasuredFx(tier);
+    });
+    return () => {
+      current = false;
+    };
+  }, [measuring]);
+
+  const remeasureFx = useCallback(() => {
+    saveMeasuredFx(browserStorage(), null);
+    setMeasuredFx(null);
+  }, []);
 
   useEffect(() => {
     if (ready) applyCustomCss(customCss);
@@ -79,7 +101,8 @@ function useAppearance(settings) {
     if (ready) document.title = title || "Haepage";
   }, [ready, title]);
 
-  return themeError;
+  const detectedFx = ready ? resolveFx("auto", navigator, motionQuery.matches, measuredFx) : null;
+  return { themeError, detectedFx: measuring ? null : detectedFx, remeasureFx };
 }
 
 // Probes each service's chosen URL every minute while the tab is visible.
@@ -235,7 +258,7 @@ export function App() {
 
   const serverConfig = state?.source === "server";
   const config = state?.config ?? emptyConfig();
-  const themeError = useAppearance(state ? config.settings : null);
+  const { themeError, detectedFx, remeasureFx } = useAppearance(state ? config.settings : null);
 
   const reloadFromServer = useCallback(async () => {
     const loaded = await loadServerConfig();
@@ -468,6 +491,8 @@ export function App() {
           onChange={update}
           onExport={() => downloadJson("haepage.json", config)}
           onImport={importFile}
+          detectedFx={detectedFx}
+          onRemeasureFx={remeasureFx}
           apps={apps}
           onManageApp={(id) => {
             setSettingsOpen(false);

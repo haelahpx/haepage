@@ -79,6 +79,7 @@ Style both layouts. In `bento`, groups are tiles (`.hp-bento .hp-group.hp-tile`)
 | `--blur` | Backdrop blur radius for glass effects |
 | `--font`, `--font-mono` | Font stacks (system fonts by default) |
 | `--status-up`, `--status-down`, `--status-unknown` | Health dot colors |
+| `--press-x`, `--press-y` | **Read-only.** Where the pointer last pressed a card, button or search result, relative to that element. Use them to start a ripple at the touch point. |
 | `--motion` | `1` normally, `0` when the visitor prefers reduced motion. Multiply durations by it. |
 | `--wallpaper`, `--wallpaper-blurred` | **Read-only.** Set by Haepage from the wallpaper settings. |
 
@@ -122,7 +123,7 @@ Put light values on `:root` and dark values under `[data-scheme="dark"]`:
 
 ## Effect tiers
 
-Haepage picks a tier for each device and the visitor can override it:
+Haepage picks a tier for each device and the visitor can override it. Low-memory, data-saving and reduced-motion devices get `lite`. Others are measured once by frame timing, and the result is remembered in that browser.
 
 - **full**: every effect.
 - **balanced**: blur capped at about 12px, fewer animations.
