@@ -18,6 +18,10 @@
         "search": { "type": "string", "description": "Default search engine id" },
         "customCss": { "type": "string" },
         "inbox": { "enum": ["inbox", "auto"] },
+        "wallpaper": {
+          "type": "string",
+          "description": "A file in the server's wallpapers folder, or an image link (https://) or path next to index.html"
+        },
         "proxyAllow": {
           "type": "array",
           "items": { "type": "string" },

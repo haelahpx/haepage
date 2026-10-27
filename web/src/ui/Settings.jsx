@@ -72,6 +72,7 @@ export function Settings({
   onUpdateTheme,
   serverThemes,
   canLint,
+  wallpapers,
   apps = [],
   onManageApp,
   onChange,
@@ -86,6 +87,8 @@ export function Settings({
   const panel = useRef(null);
   const [permission, setPermission] = useState(globalThis.Notification?.permission ?? "unsupported");
   const [themeNote, setThemeNote] = useState(null);
+  const wallpaperInFolder = !!wallpapers?.some((w) => w.name === s.wallpaper);
+  const [wallpaperLink, setWallpaperLink] = useState(!!s.wallpaper && !wallpaperInFolder);
   const themeFindings = useLint(canLint && serverThemes && customTheme, { url: s.theme });
   const cssFindings = useLint(canLint && !!s.customCss?.trim(), { css: s.customCss });
   const flashNote = (text) => {
@@ -190,6 +193,39 @@ export function Settings({
           </p>
         )}
         {showUrl && customTheme && <ThemeChecks findings={themeFindings} />}
+
+        <Field label="Wallpaper">
+          <select
+            value={wallpaperLink ? "link" : (s.wallpaper ?? "")}
+            onChange={(e) => {
+              const v = e.currentTarget.value;
+              setWallpaperLink(v === "link");
+              if (v !== "link") set({ wallpaper: v || undefined });
+            }}
+          >
+            <option value="">None</option>
+            {wallpapers?.map((w) => (
+              <option value={w.name}>{w.name}</option>
+            ))}
+            <option value="link">From a link or path…</option>
+          </select>
+        </Field>
+        {wallpaperLink && (
+          <Field label="Image link or path">
+            <input
+              placeholder="https://example.com/sky.jpg or backgrounds/sky.jpg"
+              value={wallpaperInFolder ? "" : (s.wallpaper ?? "")}
+              onChange={(e) => set({ wallpaper: e.currentTarget.value.trim() || undefined })}
+            />
+          </Field>
+        )}
+        {wallpapers && !wallpaperLink && (
+          <p class="hp-field-note">
+            {wallpapers.length
+              ? "Add more by putting images in the wallpapers folder in Haepage's data folder."
+              : "Put JPEG, PNG or WebP images in the wallpapers folder in Haepage's data folder and they show up here."}
+          </p>
+        )}
 
         <Field label="Color scheme">
           <select value={s.scheme} onChange={(e) => set({ scheme: e.currentTarget.value })}>

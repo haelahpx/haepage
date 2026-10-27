@@ -11,6 +11,7 @@ import { detectMode } from "./mode.js";
 import { allEngines, findEngine } from "./search/engines.js";
 import { buildIndex } from "./search/index.js";
 import { applyCustomCss, applyTheme, importTheme, isThemeUrl, themeFromLink } from "./theme/apply.js";
+import { applyWallpaper, listWallpapers, wallpaperUrls } from "./theme/wallpaper.js";
 import { hardLite, measureFrames, readMeasuredFx, resolveFx, resolveScheme, saveMeasuredFx, tierFromFrames } from "./theme/fx.js";
 import { Bento } from "./ui/Bento.jsx";
 import { Group } from "./ui/Card.jsx";
@@ -427,7 +428,24 @@ export function App() {
 
   if (!state) return <main class="hp-app" aria-busy="true" />;
 
-  const openSettings = () => setSettingsOpen(true);
+  // Server mode lists the wallpaper folder; null until it has loaded, so a
+  // folder name isn't mistaken for a path next to index.html.
+  const canWallpapers = mode?.capabilities.has("wallpapers") ?? false;
+  const [wallpapers, setWallpapers] = useState(null);
+  const refreshWallpapers = useCallback(() => listWallpapers().then(setWallpapers, () => setWallpapers([])), []);
+  useEffect(() => {
+    if (canWallpapers) refreshWallpapers();
+  }, [canWallpapers, refreshWallpapers]);
+  const wallpaperSetting = state ? config.settings.wallpaper : undefined;
+  useEffect(() => {
+    if (!state || (canWallpapers && wallpapers === null)) return;
+    applyWallpaper(wallpaperUrls(wallpaperSetting, wallpapers ?? [], { screenWidth: screen.width, dpr: devicePixelRatio }));
+  }, [state !== null, wallpaperSetting, wallpapers, canWallpapers]);
+
+  const openSettings = () => {
+    if (canWallpapers) refreshWallpapers();
+    setSettingsOpen(true);
+  };
   const bento = config.settings.style !== "simple";
   const search = <Search entries={entries} engines={engines} defaultEngine={defaultEngine} />;
   const empty = (
@@ -538,6 +556,7 @@ export function App() {
           onUpdateTheme={isThemeUrl(config.settings.theme) ? updateTheme : null}
           serverThemes={serverThemes}
           canLint={mode?.capabilities.has("themes.lint") ?? false}
+          wallpapers={canWallpapers ? (wallpapers ?? []) : null}
           onRemeasureFx={remeasureFx}
           apps={apps}
           onManageApp={(id) => {
