@@ -4,9 +4,9 @@ import { deviceDetail, onlineSummary } from "../tailscale.js";
 import { useState } from "preact/hooks";
 import { Group } from "./Card.jsx";
 import { IconTile, LineIcon, METRIC_HUES } from "./GroupIcon.jsx";
-import { ClockTime, SettingsButton, formatDate, useNow } from "./Header.jsx";
+import { ClockTime, EditButton, SettingsButton, formatDate, useNow } from "./Header.jsx";
 
-function Hero({ title, onSettings, children }) {
+function Hero({ title, onSettings, editing, onEdit, children }) {
   const now = useNow();
   return (
     <section class="hp-tile hp-tile--hero" aria-label="Overview">
@@ -23,6 +23,7 @@ function Hero({ title, onSettings, children }) {
         {children}
       </div>
       <div class="hp-hero-actions">
+        {onEdit && <EditButton editing={editing} onClick={onEdit} />}
         <SettingsButton onClick={onSettings} />
       </div>
     </section>
@@ -221,10 +222,11 @@ function DevicesTile({ data }) {
 
 // Bento layout: hero (clock, greeting, search), status, server stats and
 // tailnet devices when the server provides them, then one tile per group.
-export function Bento({ title, sections, services, health, chips, uptime, system, tailnet, media, widgets, search, empty, actions, onSettings }) {
+export function Bento({ title, sections, services, health, chips, uptime, system, tailnet, media, widgets, search, empty, actions, onSettings, editing, onEdit }) {
+  const zones = editing ? { "data-zone-group": "groups", "data-zone-widget": "header sidebar" } : {};
   return (
-    <div class="hp-bento">
-      <Hero title={title} onSettings={onSettings}>
+    <div class="hp-bento" {...zones}>
+      <Hero title={title} onSettings={onSettings} editing={editing} onEdit={onEdit}>
         {search}
       </Hero>
       <StatusTile health={health} services={services} />
@@ -234,7 +236,17 @@ export function Bento({ title, sections, services, health, chips, uptime, system
       {widgets.top}
       {sections.length > 0 ? (
         sections.map((g) => (
-          <Group key={g.id} {...g} health={health} chips={chips} uptime={uptime} actions={actions} widgets={widgets.inGroup(g.id)} tile />
+          <Group
+            key={g.id}
+            {...g}
+            health={health}
+            chips={chips}
+            uptime={uptime}
+            actions={actions}
+            widgets={widgets.inGroup(g.id)}
+            editing={editing}
+            tile
+          />
         ))
       ) : (
         <section class="hp-tile hp-tile--wide">{empty}</section>

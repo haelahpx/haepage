@@ -8,8 +8,9 @@ import { Icon } from "./Icon.jsx";
 const STATUS_TEXT = { up: "Up", down: "Down", unknown: "Not checked" };
 
 // `uptime` ({uptime, bars}, Server mode) shows on hover: the description
-// becomes the 24-hour uptime and a strip of half-hour bars appears.
-export function Card({ service, health, chip, uptime }) {
+// becomes the 24-hour uptime and a strip of half-hour bars appears. `edit`
+// holds the edit-mode attributes (ui/drag.js) while the layout is edited.
+export function Card({ service, health, chip, uptime, edit }) {
   const { link } = service;
   const [hover, setHover] = useState(false);
   const showUptime = hover && uptime;
@@ -29,6 +30,7 @@ export function Card({ service, health, chip, uptime }) {
       onMouseLeave={() => setHover(false)}
       onFocus={() => setHover(true)}
       onBlur={() => setHover(false)}
+      {...edit}
     >
       <Icon name={service.name} icon={service.icon} />
       <div class="hp-card-body">
@@ -76,10 +78,10 @@ export function Card({ service, health, chip, uptime }) {
 // A newly detected service. Add and Hide sit on the card's right edge;
 // they are siblings of the card's link (buttons can't go inside a link),
 // laid over the space the card leaves for them.
-function InboxItem({ service, health, chip, actions }) {
+function InboxItem({ service, health, chip, actions, edit }) {
   return (
     <div class="hp-inbox-item">
-      <Card service={{ ...service, isNew: false }} health={health} chip={chip} />
+      <Card service={{ ...service, isNew: false }} health={health} chip={chip} edit={edit} />
       <div class="hp-inbox-actions">
         <button
           type="button"
@@ -110,11 +112,21 @@ function InboxItem({ service, health, chip, actions }) {
 
 // A group of cards. As a bento tile it widens when it holds more than four
 // services. The Inbox group gets Add and Hide buttons when actions exist.
-export function Group({ id, name, icon, services, health, chips = {}, uptime = {}, inbox, actions, tile = false, widgets = null }) {
+// While `editing`, the group, its cards and its widget area can be dragged
+// and dropped on (ui/drag.js). Cards in New can be dragged out, but New
+// itself takes no drops.
+export function Group({ id, name, icon, services, health, chips = {}, uptime = {}, inbox, actions, tile = false, widgets = null, editing = false }) {
   let cls = inbox ? "hp-group hp-group--inbox" : "hp-group";
   if (tile) cls += services.length > 4 ? " hp-tile hp-tile--wide" : " hp-tile";
+  const edit = editing && !inbox;
+  const attrs = edit
+    ? {
+        "data-zone-service": id,
+        ...(id !== "" && { "data-edit": "group", "data-id": id, "data-list": "groups", "data-zone-widget": id, tabIndex: 0 }),
+      }
+    : {};
   return (
-    <section class={cls} aria-label={name}>
+    <section class={cls} aria-label={name} {...attrs}>
       <h2 class="hp-group-title">
         <GroupIcon id={id} name={name} icon={icon} />
         <span class="hp-group-name">
@@ -127,9 +139,23 @@ export function Group({ id, name, icon, services, health, chips = {}, uptime = {
       <div class="hp-grid">
         {services.map((s) =>
           inbox && actions ? (
-            <InboxItem key={s.id} service={s} health={health[s.id]} chip={chips[s.id]} actions={actions} />
+            <InboxItem
+              key={s.id}
+              service={s}
+              health={health[s.id]}
+              chip={chips[s.id]}
+              actions={actions}
+              edit={editing ? { "data-edit": "service", "data-id": s.id, "data-list": id } : undefined}
+            />
           ) : (
-            <Card key={s.id} service={s} health={health[s.id]} chip={chips[s.id]} uptime={uptime[s.id]} />
+            <Card
+              key={s.id}
+              service={s}
+              health={health[s.id]}
+              chip={chips[s.id]}
+              uptime={uptime[s.id]}
+              edit={edit ? { "data-edit": "service", "data-id": s.id, "data-list": id } : undefined}
+            />
           ),
         )}
       </div>
