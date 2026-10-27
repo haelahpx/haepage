@@ -29,6 +29,7 @@ import (
 	"github.com/haelahpx/haepage/internal/system"
 	"github.com/haelahpx/haepage/internal/themes"
 	"github.com/haelahpx/haepage/internal/version"
+	"github.com/haelahpx/haepage/internal/wallpaper"
 	"github.com/haelahpx/haepage/web"
 )
 
@@ -138,6 +139,7 @@ func run(args []string) error {
 		opts.System = system.NewSampler("/", *dataDir)
 	}
 	guard := &proxy.Guard{AllowPrivate: func(host string) bool { return cfg.Config().AllowsPrivateHost(host) }}
+	opts.Wallpapers = &wallpaper.Library{Dir: filepath.Join(*dataDir, "wallpapers"), Cache: filepath.Join(*dataDir, "cache", "wallpapers")}
 	opts.Themes = &themes.Remote{Dir: filepath.Join(*dataDir, "cache", "themes"), Client: guard.Client(10 * time.Second)}
 
 	srv := &http.Server{

@@ -12,6 +12,7 @@ import (
 	"github.com/haelahpx/haepage/internal/store"
 	"github.com/haelahpx/haepage/internal/system"
 	"github.com/haelahpx/haepage/internal/themes"
+	"github.com/haelahpx/haepage/internal/wallpaper"
 )
 
 // APIVersion is the version of the /api contract. It changes only on a
@@ -30,6 +31,7 @@ type Options struct {
 	Integrations *integrations.Manager // nil turns integrations off
 	Health       bool                  // the server runs health checks
 	Themes       *themes.Remote        // theme import by link; nil turns it off
+	Wallpapers   *wallpaper.Library    // the wallpaper folder; nil turns wallpapers off
 }
 
 // SystemReader provides host stats.
@@ -89,6 +91,11 @@ func New(opts Options) http.Handler {
 	}
 	if opts.Health {
 		capabilities = append(capabilities, "health.full")
+	}
+	if opts.Wallpapers != nil {
+		capabilities = append(capabilities, "wallpapers")
+		mux.HandleFunc("GET /api/wallpapers", listWallpapers(opts.Wallpapers))
+		mux.HandleFunc("GET /wallpapers/{hash}/{variant}", wallpaperFile(opts.Wallpapers))
 	}
 	capabilities = append(capabilities, "themes.lint")
 	mux.HandleFunc("POST /api/themes/lint", lintTheme(opts.Themes))

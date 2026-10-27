@@ -46,6 +46,8 @@ Haepage sets these. Your CSS can target them.
 | `data-fx` | `full`, `balanced`, `lite` |
 | `data-mode` | `static`, `server` |
 | `data-style` | `bento` (tiles, the default) or `simple` (a plain list of groups) |
+| `data-wallpaper` | Present when a wallpaper is set |
+| `data-wallpaper-blurred` | Present when `--wallpaper-blurred` is available too |
 
 Style both layouts. In `bento`, groups are tiles (`.hp-bento .hp-group.hp-tile`) and cards sit inside them, so most themes make cards lighter there.
 
@@ -81,7 +83,8 @@ Style both layouts. In `bento`, groups are tiles (`.hp-bento .hp-group.hp-tile`)
 | `--status-up`, `--status-down`, `--status-unknown` | Health dot colors |
 | `--press-x`, `--press-y` | **Read-only.** Where the pointer last pressed a card, button or search result, relative to that element. Use them to start a ripple at the touch point. |
 | `--motion` | `1` normally, `0` when the visitor prefers reduced motion. Multiply durations by it. |
-| `--wallpaper`, `--wallpaper-blurred` | **Read-only.** Set by Haepage from the wallpaper settings. |
+| `--wallpaper`, `--wallpaper-blurred` | **Read-only.** Set by Haepage from the wallpaper settings. `--wallpaper-blurred` is a tiny pre-blurred copy: use it as `var(--wallpaper-blurred) center / cover fixed` for frosted glass with no live blur. |
+| `--wallpaper-scrim` | A color laid over the wallpaper so text stays readable (default `transparent`) |
 
 ## Classes
 

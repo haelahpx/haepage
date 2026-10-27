@@ -77,6 +77,15 @@ body::before {
   pointer-events: none;
 }
 
+/* A wallpaper replaces the background image. --wallpaper-scrim (a color or
+   gradient) lets themes darken or lighten it for readable text. */
+:root[data-wallpaper] body::before {
+  background:
+    linear-gradient(var(--wallpaper-scrim, transparent), var(--wallpaper-scrim, transparent)),
+    var(--wallpaper) center / cover no-repeat,
+    var(--bg);
+}
+
 /* Full width on every screen; very wide screens get more bento columns
    instead of empty side margins. */
 .hp-app {

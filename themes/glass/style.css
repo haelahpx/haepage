@@ -343,6 +343,42 @@
   background: var(--fill);
 }
 
+/* Wallpaper: tiles turn to frosted glass. On the full tier the fill is
+   the server's pre-blurred copy of the wallpaper, fixed to the viewport so
+   it lines up with the page behind; no live blur. Other tiers, and
+   wallpapers without a blurred copy, use a denser tint instead. */
+:root[data-wallpaper] {
+  --surface: rgba(255, 255, 255, 0.8);
+  --glass-tint: rgba(255, 255, 255, 0.55);
+  --wallpaper-scrim: rgba(255, 255, 255, 0.08);
+}
+
+:root[data-wallpaper][data-scheme="dark"] {
+  --surface: rgba(24, 29, 43, 0.84);
+  --glass-tint: rgba(18, 22, 34, 0.55);
+  --wallpaper-scrim: rgba(0, 0, 0, 0.25);
+}
+
+:root[data-wallpaper] .hp-tile--hero {
+  background: var(--sheen), var(--surface);
+}
+
+:root[data-wallpaper-blurred][data-fx="full"] .hp-tile,
+:root[data-wallpaper-blurred][data-fx="full"] .hp-banner {
+  background:
+    var(--sheen),
+    linear-gradient(var(--glass-tint), var(--glass-tint)),
+    var(--wallpaper-blurred) center / cover fixed;
+}
+
+:root[data-wallpaper-blurred][data-fx="full"] .hp-tile--status[data-state="down"] {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--status-down) 14%, transparent), transparent 70%),
+    var(--sheen),
+    linear-gradient(var(--glass-tint), var(--glass-tint)),
+    var(--wallpaper-blurred) center / cover fixed;
+}
+
 /* Lite: flat background, no glow, no motion. Overlays turn opaque,
    since without blur the page would show through them. */
 :root[data-fx="lite"] {

@@ -9,6 +9,15 @@ Haepage has two built-in themes, **Tonal** and **Glass**, each with a light and 
 - **Automatic** (the default): low-memory, data-saving and reduced-motion devices get Lite. Other devices are timed once, the first time they open the page, and the result is remembered in that browser. Settings shows which tier the device got. **Check again** times it again.
 - **Full**, **Balanced** or **Lite**: always use that tier.
 
+## Wallpaper
+
+Pick one in **Settings → Wallpaper**.
+
+- **Server mode:** put JPEG, PNG, GIF or WebP images in the `wallpapers` folder inside Haepage's data folder (`/data/wallpapers` in Docker). They show up in the list. The server makes copies sized for phones and big screens (each under 500 KB) and a tiny blurred copy, and each browser downloads only the size it needs. WebP and AVIF files are used as they are.
+- **Either mode:** choose **From a link or path…** and enter an `https://` image link, or a path to an image next to `index.html` (such as `backgrounds/sky.jpg`).
+
+With a wallpaper, Glass turns its tiles into frosted glass. On the Full effects tier the frost comes from the blurred copy, so it costs no more than a plain color while you scroll.
+
 ## Use a theme from a link
 
 A theme can be a single CSS file on any `https://` address.
