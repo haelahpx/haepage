@@ -5,9 +5,11 @@ package system
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -25,6 +27,15 @@ type Stats struct {
 	Disks    []Disk   `json:"disks"`
 	Network  Network  `json:"network"`
 	TempC    *float64 `json:"tempC"`
+	Temps    []Sensor `json:"temps"`
+}
+
+// Sensor is one temperature device: its hottest reading and, when the
+// hardware reports one, its critical limit.
+type Sensor struct {
+	Name  string   `json:"name"`
+	C     float64  `json:"c"`
+	CritC *float64 `json:"critC,omitempty"`
 }
 
 type CPU struct {
@@ -113,6 +124,7 @@ func (s *Sampler) Read() (Stats, error) {
 		Memory: s.memory(),
 		Disks:  diskUsage(s.Mounts),
 		TempC:  s.temperature(),
+		Temps:  s.sensors(),
 	}
 	st.Hostname, _ = os.Hostname()
 
@@ -284,6 +296,66 @@ func (s *Sampler) temperature() *float64 {
 		}
 	}
 	return best
+}
+
+// Friendly names for common hwmon drivers.
+var sensorNames = map[string]string{
+	"coretemp": "CPU", "k10temp": "CPU", "zenpower": "CPU", "cpu_thermal": "CPU", "soc_thermal": "CPU",
+	"acpitz": "Motherboard", "pch_cannonlake": "Chipset", "pch_skylake": "Chipset",
+	"nvme": "NVMe drive", "drivetemp": "Drive", "amdgpu": "GPU", "nouveau": "GPU", "radeon": "GPU",
+	"spd5118": "Memory", "jc42": "Memory", "mt7921_phy0": "Wi-Fi", "iwlwifi_1": "Wi-Fi",
+}
+
+// sensors reads every hwmon device with temperature inputs. Devices with
+// the same friendly name are numbered ("Memory 2").
+func (s *Sampler) sensors() []Sensor {
+	devices, _ := filepath.Glob(s.path("sys/class/hwmon/hwmon*"))
+	sort.Strings(devices)
+	out := []Sensor{}
+	seen := map[string]int{}
+	readC := func(path string) (float64, bool) {
+		raw, err := os.ReadFile(path)
+		if err != nil {
+			return 0, false
+		}
+		milli, err := strconv.ParseFloat(strings.TrimSpace(string(raw)), 64)
+		return milli / 1000, err == nil && milli > 0 && milli < 200000
+	}
+	for _, dev := range devices {
+		inputs, _ := filepath.Glob(filepath.Join(dev, "temp*_input"))
+		if len(inputs) == 0 {
+			continue
+		}
+		var hottest float64
+		var crit *float64
+		for _, in := range inputs {
+			if c, ok := readC(in); ok && c > hottest {
+				hottest = c
+			}
+			base := strings.TrimSuffix(in, "_input")
+			for _, limit := range []string{base + "_crit", base + "_max"} {
+				if c, ok := readC(limit); ok && (crit == nil || c < *crit) {
+					v := round1(c)
+					crit = &v
+					break
+				}
+			}
+		}
+		if hottest == 0 {
+			continue
+		}
+		raw, _ := os.ReadFile(filepath.Join(dev, "name"))
+		driver := strings.TrimSpace(string(raw))
+		name := sensorNames[driver]
+		if name == "" {
+			name = driver
+		}
+		if seen[name]++; seen[name] > 1 {
+			name = fmt.Sprintf("%s %d", name, seen[name])
+		}
+		out = append(out, Sensor{Name: name, C: round1(hottest), CritC: crit})
+	}
+	return out
 }
 
 func round1(v float64) float64 {

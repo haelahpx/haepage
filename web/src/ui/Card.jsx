@@ -1,5 +1,6 @@
 import { useState } from "preact/hooks";
 import { hostOf } from "../links.js";
+import { certNotice } from "../expiry.js";
 import { barStates, formatUptime } from "../uptime.js";
 import { GroupIcon } from "./GroupIcon.jsx";
 import { Icon } from "./Icon.jsx";
@@ -12,6 +13,7 @@ export function Card({ service, health, chip, uptime }) {
   const { link } = service;
   const [hover, setHover] = useState(false);
   const showUptime = hover && uptime;
+  const cert = certNotice(health?.certExpires);
   const desc = showUptime ? `${formatUptime(uptime.uptime)} up in 24 h` : service.description || (link && hostOf(link.url));
   const title = link
     ? [`${link.url} (${link.kind})`, ...link.others.map((o) => `${o.url} (${o.kind})`)].join("\n")
@@ -37,6 +39,11 @@ export function Card({ service, health, chip, uptime }) {
       {chip && (
         <span class={`hp-chip hp-chip--${chip.tone}`} title={chip.title}>
           {chip.text}
+        </span>
+      )}
+      {cert && (
+        <span class={`hp-chip hp-chip--${cert.tone}`} title={cert.title}>
+          {cert.text}
         </span>
       )}
       {health && (

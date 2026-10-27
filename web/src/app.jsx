@@ -444,6 +444,7 @@ export function App() {
   );
   const widgetCtx = {
     system,
+    services,
     capabilities: mode?.capabilities ?? new Set(),
     // Lets an API widget reach a host on the home network (settings.proxyAllow).
     allowHost: (host) =>

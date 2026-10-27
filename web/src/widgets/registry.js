@@ -11,6 +11,9 @@ export const WIDGET_TYPES = {
   rss: { name: "News feed (RSS)", defaults: { url: "", limit: 8 }, load: () => import("./rss.jsx"), needs: "widgets.proxy" },
   calendar: { name: "Calendar", defaults: { url: "", days: 14 }, load: () => import("./calendar.jsx"), needs: "widgets.proxy" },
   releases: { name: "Releases", defaults: { repos: [] }, load: () => import("./releases.jsx"), needs: "widgets.proxy" },
+  expiry: { name: "Expiry (certificates, domains)", defaults: { domains: [], warnDays: 30 }, load: () => import("./expiry.jsx") },
+  temperature: { name: "Temperatures", defaults: {}, load: () => import("./temperature.jsx"), needs: "system" },
+  disks: { name: "Disks", defaults: {}, load: () => import("./disks.jsx"), needs: "system" },
   api: { name: "API (no code)", defaults: { url: "", headers: {}, display: "stat", fields: [] }, load: () => import("./api.jsx"), needs: "widgets.proxy" },
 };
 

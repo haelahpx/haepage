@@ -91,3 +91,15 @@ func TestFeedWidgets(t *testing.T) {
 		}
 	}
 }
+
+func TestExpiryWidget(t *testing.T) {
+	widgets := []config.Widget{feedWidget("exp", "expiry", FeedOptions{Domains: []string{"example.com", "bad name"}})}
+	p := &Widgets{Config: func() config.Config { return config.Config{Widgets: widgets} }, Secrets: secretMap{}}
+	body, err := p.Data(context.Background(), "exp")
+	var got struct {
+		Domains []struct{ Name, Error string }
+	}
+	if json.Unmarshal(body, &got); err != nil || len(got.Domains) != 2 || got.Domains[0].Error != "domain lookups are off" {
+		t.Errorf("expiry without RDAP = %s, %v", body, err)
+	}
+}
