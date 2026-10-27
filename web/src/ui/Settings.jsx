@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import { KIND_NAMES } from "../integration.js";
 import { BUILTIN_THEMES, isThemeUrl, lintCss, shareLink } from "../theme/apply.js";
+import { WIDGET_TYPES, newWidget } from "../widgets/registry.js";
 
 const FX_NAMES = { full: "Full", balanced: "Balanced", lite: "Lite" };
 const SHOWN_FINDINGS = 5;
@@ -73,6 +74,7 @@ export function Settings({
   serverThemes,
   canLint,
   wallpapers,
+  groups = [],
   apps = [],
   onManageApp,
   onChange,
@@ -273,6 +275,57 @@ export function Settings({
           />
         </Field>
         <ThemeChecks findings={cssFindings} />
+
+        <div class="hp-field">
+          <span>Widgets</span>
+          {config.widgets.length > 0 && (
+            <ul class="hp-connect-list">
+              {config.widgets.map((w) => (
+                <li key={w.id}>
+                  <span>
+                    <strong>{w.title || WIDGET_TYPES[w.type]?.name || w.type}</strong>
+                  </span>
+                  <select
+                    aria-label={`Where ${w.title || WIDGET_TYPES[w.type]?.name || w.type} goes`}
+                    value={w.area ?? "header"}
+                    onChange={(e) =>
+                      onChange({
+                        ...config,
+                        widgets: config.widgets.map((x) => (x.id === w.id ? { ...x, area: e.currentTarget.value } : x)),
+                      })
+                    }
+                  >
+                    <option value="header">Top</option>
+                    {groups.map((g) => (
+                      <option value={g.id}>In {g.name}</option>
+                    ))}
+                    <option value="sidebar">Bottom</option>
+                  </select>
+                  <button
+                    type="button"
+                    class="hp-button hp-button--quiet"
+                    onClick={() => onChange({ ...config, widgets: config.widgets.filter((x) => x.id !== w.id) })}
+                  >
+                    Remove
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <select
+            value=""
+            onChange={(e) => {
+              const type = e.currentTarget.value;
+              if (!type) return;
+              onChange({ ...config, widgets: [...config.widgets, newWidget(type, config.widgets.map((w) => w.id))] });
+            }}
+          >
+            <option value="">Add a widget…</option>
+            {Object.entries(WIDGET_TYPES).map(([type, t]) => (
+              <option value={type}>{t.name}</option>
+            ))}
+          </select>
+        </div>
 
         {apps.length > 0 && (
           <div class="hp-field">

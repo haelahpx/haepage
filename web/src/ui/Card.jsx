@@ -64,7 +64,7 @@ function InboxItem({ service, health, chip, actions }) {
 
 // A group of cards. As a bento tile it widens when it holds more than four
 // services. The Inbox group gets Add and Hide buttons when actions exist.
-export function Group({ id, name, icon, services, health, chips = {}, inbox, actions, tile = false }) {
+export function Group({ id, name, icon, services, health, chips = {}, inbox, actions, tile = false, widgets = null }) {
   let cls = inbox ? "hp-group hp-group--inbox" : "hp-group";
   if (tile) cls += services.length > 4 ? " hp-tile hp-tile--wide" : " hp-tile";
   return (
@@ -87,6 +87,7 @@ export function Group({ id, name, icon, services, health, chips = {}, inbox, act
           ),
         )}
       </div>
+      {widgets}
     </section>
   );
 }

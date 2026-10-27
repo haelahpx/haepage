@@ -17,6 +17,7 @@ const budgets = {
   js: { warn: 50 * 1024, fail: 60 * 1024 },
   html: { warn: 14 * 1024, fail: 14 * 1024 },
   css: { warn: 15 * 1024, fail: 50 * 1024 },
+  chunk: { warn: 10 * 1024, fail: 15 * 1024 },
 };
 
 const compressible = /\.(js|css|html|json|svg|webmanifest)$/;
@@ -39,11 +40,14 @@ async function bundle() {
     jsx: "automatic",
     jsxImportSource: "preact",
     entryNames: "[name]-[hash]",
+    chunkNames: "[name]-[hash]",
+    splitting: true,
     outdir: join(dist, "assets"),
     metafile: true,
     logLevel: "warning",
   });
-  const out = Object.keys(result.metafile.outputs).find((f) => f.endsWith(".js"));
+  // The entry chunk; widgets and their shared code are separate chunks.
+  const out = Object.entries(result.metafile.outputs).find(([, o]) => o.entryPoint)[0];
   return basename(out);
 }
 
@@ -99,7 +103,7 @@ async function pwaFiles() {
 async function serviceWorker(jsName) {
   const shell = [
     "./",
-    `./assets/${jsName}`,
+    ...(await readdir(join(dist, "assets"))).filter((f) => f.endsWith(".js")).map((f) => `./assets/${f}`),
     "./manifest.webmanifest",
     ...(await readdir(join(dist, "themes"))).filter((f) => f.endsWith(".css")).map((f) => `./themes/${f}`),
     ...(await readdir(join(dist, "icons"))).map((f) => `./icons/${f}`),
@@ -140,7 +144,16 @@ function check(sizes, jsName) {
   let failed = false;
   const kb = (n) => `${(n / 1024).toFixed(1)} KB`;
   for (const { file, raw, gz } of sizes) {
-    const kind = file === `assets/${jsName}` ? "js" : file === "index.html" ? "html" : file.endsWith(".css") ? "css" : null;
+    const kind =
+      file === `assets/${jsName}`
+        ? "js"
+        : file.startsWith("assets/") && file.endsWith(".js")
+          ? "chunk"
+          : file === "index.html"
+            ? "html"
+            : file.endsWith(".css")
+              ? "css"
+              : null;
     const budget = kind && budgets[kind];
     let note = "";
     if (budget && gz > budget.fail) {
