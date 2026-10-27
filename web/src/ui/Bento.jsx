@@ -1,5 +1,7 @@
 import { greeting, headline, summarize } from "../status.js";
 import { formatBytes, formatRate, formatUptime, mainDisk, percent } from "../system.js";
+import { deviceDetail, onlineSummary } from "../tailscale.js";
+import { useState } from "preact/hooks";
 import { Group } from "./Card.jsx";
 import { IconTile, LineIcon, METRIC_HUES } from "./GroupIcon.jsx";
 import { ClockTime, SettingsButton, formatDate, useNow } from "./Header.jsx";
@@ -171,9 +173,55 @@ function SystemTile({ stats }) {
   );
 }
 
-// Bento layout: hero (clock, greeting, search), status, server stats when
-// the server provides them, then one tile per group.
-export function Bento({ title, sections, services, health, chips, system, media, search, empty, actions, onSettings }) {
+const DEVICES_SHOWN = 6;
+
+// Machines on the tailnet: this server first, then online, then offline.
+function DevicesTile({ data }) {
+  const [all, setAll] = useState(false);
+  if (!data) {
+    return (
+      <section class="hp-tile hp-tile--devices" aria-label="Tailscale devices" aria-busy="true">
+        <TileHead icon="shield" hue={METRIC_HUES.tailnet} title="Devices" sub="Loading…" />
+      </section>
+    );
+  }
+  const running = data.state === "Running";
+  const shown = all ? data.devices : data.devices.slice(0, DEVICES_SHOWN);
+  return (
+    <section class="hp-tile hp-tile--devices" aria-label="Tailscale devices">
+      <TileHead
+        icon="shield"
+        hue={METRIC_HUES.tailnet}
+        title="Devices"
+        sub={running ? onlineSummary(data.devices) : `Tailscale is ${data.state.toLowerCase() || "off"}`}
+      />
+      <ul class="hp-devices">
+        {shown.map((d) => (
+          <li key={d.dnsName || d.name} class="hp-device" title={d.dnsName}>
+            <span class={`hp-status hp-status--${d.online ? "up" : "unknown"}`} aria-label={d.online ? "online" : "offline"} />
+            <span class="hp-device-body">
+              <span class="hp-device-name">
+                {d.name}
+                {d.self && <span class="hp-chip hp-chip--info">this server</span>}
+                {d.exitNode && <span class="hp-chip">exit node</span>}
+              </span>
+              <span class="hp-device-detail">{deviceDetail(d)}</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+      {data.devices.length > DEVICES_SHOWN && (
+        <button type="button" class="hp-link-button hp-devices-more" onClick={() => setAll(!all)}>
+          {all ? "Show fewer" : `Show all ${data.devices.length}`}
+        </button>
+      )}
+    </section>
+  );
+}
+
+// Bento layout: hero (clock, greeting, search), status, server stats and
+// tailnet devices when the server provides them, then one tile per group.
+export function Bento({ title, sections, services, health, chips, system, tailnet, media, search, empty, actions, onSettings }) {
   return (
     <div class="hp-bento">
       <Hero title={title} onSettings={onSettings}>
@@ -181,6 +229,7 @@ export function Bento({ title, sections, services, health, chips, system, media,
       </Hero>
       <StatusTile health={health} services={services} />
       {system.enabled && <SystemTile stats={system.stats} />}
+      {tailnet?.enabled && <DevicesTile data={tailnet.data} />}
       {media}
       {sections.length > 0 ? (
         sections.map((g) => <Group key={g.id} {...g} health={health} chips={chips} actions={actions} tile />)

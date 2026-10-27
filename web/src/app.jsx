@@ -151,10 +151,12 @@ function useHealth(services, enabled) {
 }
 
 const SYSTEM_INTERVAL = 5_000;
+const TAILSCALE_INTERVAL = 30_000;
 
-// Polls /api/system while the tab is visible, if the server offers it.
-function useSystem(enabled) {
-  const [stats, setStats] = useState(null);
+// Polls a JSON endpoint while the tab is visible. Keeps the last good
+// reading when a poll fails; null until the first one arrives.
+function usePolled(url, enabled, interval) {
+  const [data, setData] = useState(null);
 
   useEffect(() => {
     if (!enabled) return undefined;
@@ -162,24 +164,24 @@ function useSystem(enabled) {
     const run = async () => {
       if (document.hidden) return;
       try {
-        const res = await fetch("./api/system", { cache: "no-store" });
-        if (res.ok && !cancelled) setStats(await res.json());
+        const res = await fetch(url, { cache: "no-store" });
+        if (res.ok && !cancelled) setData(await res.json());
       } catch {
-        // Keep the last reading; the next poll may succeed.
+        // The next poll may succeed.
       }
     };
     const onVisible = () => !document.hidden && run();
     run();
-    const timer = setInterval(run, SYSTEM_INTERVAL);
+    const timer = setInterval(run, interval);
     document.addEventListener("visibilitychange", onVisible);
     return () => {
       cancelled = true;
       clearInterval(timer);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [enabled]);
+  }, [url, enabled, interval]);
 
-  return { enabled, stats };
+  return data;
 }
 
 // Follows the server's event stream: services, integration data and
@@ -423,7 +425,10 @@ export function App() {
       hide: (s) => save(s, { hidden: true, pinned: false }),
     };
   }, [mode, config.overrides]);
-  const system = useSystem(mode?.capabilities.has("system") ?? false);
+  const systemEnabled = mode?.capabilities.has("system") ?? false;
+  const system = { enabled: systemEnabled, stats: usePolled("./api/system", systemEnabled, SYSTEM_INTERVAL) };
+  const tailscaleEnabled = mode?.capabilities.has("tailscale.devices") ?? false;
+  const tailnet = { enabled: tailscaleEnabled, data: usePolled("./api/tailscale/devices", tailscaleEnabled, TAILSCALE_INTERVAL) };
   const chips = useMemo(
     () => Object.fromEntries(Object.entries(integrationStates).map(([id, st]) => [id, chipFor(st)]).filter(([, c]) => c)),
     [integrationStates],
@@ -546,6 +551,7 @@ export function App() {
           health={health}
           chips={chips}
           system={system}
+          tailnet={tailnet}
           media={media}
           search={search}
           empty={empty}

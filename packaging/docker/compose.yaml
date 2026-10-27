@@ -14,6 +14,8 @@ services:
       - "8080:8080"
     volumes:
       - haepage-data:/data
+      # Optional: the Tailscale devices panel reads tailscaled's local API.
+      # - /var/run/tailscale/tailscaled.sock:/var/run/tailscale/tailscaled.sock
     environment:
       DOCKER_HOST: tcp://socket-proxy:2375
       # Health checks reach services published on this machine through the

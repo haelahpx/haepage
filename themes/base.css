@@ -507,6 +507,50 @@ body::before {
   font-weight: 600;
 }
 
+.hp-devices {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hp-device {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 7px 0;
+}
+
+.hp-device-body {
+  display: grid;
+  min-width: 0;
+}
+
+.hp-device-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.hp-device-detail {
+  overflow: hidden;
+  font-size: 0.78rem;
+  color: var(--on-surface-muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.hp-devices-more {
+  margin-top: 6px;
+  font-size: 0.85rem;
+}
+
 .hp-down-list {
   display: flex;
   flex-wrap: wrap;
