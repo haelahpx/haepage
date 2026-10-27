@@ -74,14 +74,15 @@ func TestLimiter(t *testing.T) {
 	l := newLimiter(2)
 	now := time.Unix(0, 0)
 	l.now = func() time.Time { return now }
-	if !l.allow("a") || !l.allow("a") || l.allow("a") {
-		t.Fatal("burst of 2 not enforced")
+	got := []bool{l.allow("a"), l.allow("a"), l.allow("a")}
+	if !got[0] || !got[1] || got[2] {
+		t.Fatalf("burst of 2 not enforced: %v", got)
 	}
 	if !l.allow("b") {
 		t.Fatal("limits must be per client")
 	}
 	now = now.Add(30 * time.Second) // 2 per minute → one token back
-	if !l.allow("a") || l.allow("a") {
-		t.Fatal("refill not at the configured rate")
+	if first, second := l.allow("a"), l.allow("a"); !first || second {
+		t.Fatalf("refill not at the configured rate: %v, %v", first, second)
 	}
 }
