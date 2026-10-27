@@ -12,6 +12,8 @@ import { allEngines, findEngine } from "./search/engines.js";
 import { buildIndex } from "./search/index.js";
 import { applyCustomCss, applyTheme, importTheme, isThemeUrl, themeFromLink } from "./theme/apply.js";
 import { applyWallpaper, listWallpapers, wallpaperUrls } from "./theme/wallpaper.js";
+import { WidgetTile } from "./widgets/host.jsx";
+import { placeWidgets } from "./widgets/registry.js";
 import { hardLite, measureFrames, readMeasuredFx, resolveFx, resolveScheme, saveMeasuredFx, tierFromFrames } from "./theme/fx.js";
 import { Bento } from "./ui/Bento.jsx";
 import { Group } from "./ui/Card.jsx";
@@ -399,6 +401,7 @@ export function App() {
     [live, config.services],
   );
   const sections = useMemo(() => arrange(config.groups, services), [config.groups, services]);
+
   const engines = useMemo(() => allEngines(config.engines), [config.engines]);
   const defaultEngine = findEngine(engines, config.settings.search);
   const entries = useMemo(
@@ -429,6 +432,21 @@ export function App() {
   const system = { enabled: systemEnabled, stats: usePolled("./api/system", systemEnabled, SYSTEM_INTERVAL) };
   const tailscaleEnabled = mode?.capabilities.has("tailscale.devices") ?? false;
   const tailnet = { enabled: tailscaleEnabled, data: usePolled("./api/tailscale/devices", tailscaleEnabled, TAILSCALE_INTERVAL) };
+
+  // Widgets: saved back into haepage.json when they change (notes, to-dos,
+  // a weather place…), like any other setting.
+  const updateWidget = useCallback(
+    (next) => update({ ...config, widgets: config.widgets.map((w) => (w.id === next.id ? next : w)) }),
+    [config, update],
+  );
+  const widgetCtx = { system };
+  const placed = placeWidgets(config.widgets, sections.map((g) => g.id));
+  const renderWidget = (w, inline) => <WidgetTile key={w.id} widget={w} ctx={widgetCtx} onChange={updateWidget} inline={inline} />;
+  const widgetSlots = {
+    top: placed.top.map((w) => renderWidget(w, false)),
+    bottom: placed.bottom.map((w) => renderWidget(w, false)),
+    inGroup: (id) => placed.groups[id]?.map((w) => renderWidget(w, true)) ?? null,
+  };
   const chips = useMemo(
     () => Object.fromEntries(Object.entries(integrationStates).map(([id, st]) => [id, chipFor(st)]).filter(([, c]) => c)),
     [integrationStates],
@@ -553,6 +571,7 @@ export function App() {
           system={system}
           tailnet={tailnet}
           media={media}
+          widgets={widgetSlots}
           search={search}
           empty={empty}
           actions={actions}
@@ -562,9 +581,13 @@ export function App() {
         <>
           {search}
           <div class="hp-integrations">{media}</div>
+          {widgetSlots.top.length > 0 && <div class="hp-widgets">{widgetSlots.top}</div>}
           {sections.length > 0
-            ? sections.map((g) => <Group key={g.id} {...g} health={health} chips={chips} actions={actions} />)
+            ? sections.map((g) => (
+                <Group key={g.id} {...g} health={health} chips={chips} actions={actions} widgets={widgetSlots.inGroup(g.id)} />
+              ))
             : empty}
+          {widgetSlots.bottom.length > 0 && <div class="hp-widgets">{widgetSlots.bottom}</div>}
         </>
       )}
 
@@ -582,6 +605,7 @@ export function App() {
           serverThemes={serverThemes}
           canLint={mode?.capabilities.has("themes.lint") ?? false}
           wallpapers={canWallpapers ? (wallpapers ?? []) : null}
+          groups={sections.filter((g) => !g.inbox).map((g) => ({ id: g.id, name: g.name }))}
           onRemeasureFx={remeasureFx}
           apps={apps}
           onManageApp={(id) => {

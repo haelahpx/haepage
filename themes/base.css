@@ -1372,3 +1372,246 @@ body::before {
   font-size: 0.78rem;
   color: var(--on-surface-muted);
 }
+
+/* Widgets (docs/widget-api.md). A widget is a tile of its own, or a block
+   inside a group (`area` set to the group's id). */
+.hp-widgets {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+  gap: var(--gap);
+  margin-bottom: calc(var(--gap) * 2);
+}
+
+.hp-widget {
+  min-width: 0;
+}
+
+.hp-widget-title {
+  margin: 0 0 12px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.hp-group > .hp-widget {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--separator, var(--surface-variant));
+}
+
+.hp-widget-empty {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--on-surface-muted);
+}
+
+.hp-widget-empty[aria-busy="true"] {
+  min-height: 3rem;
+}
+
+.hp-w-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.hp-w-form input,
+.hp-w-todo input:not([type="checkbox"]),
+.hp-w-notes {
+  flex: 1 1 8rem;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-variant);
+  color: inherit;
+  font: inherit;
+}
+
+.hp-w-remove {
+  padding: 0 6px;
+  border: 0;
+  background: none;
+  color: var(--on-surface-muted);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity calc(120ms * var(--motion)) var(--ease);
+}
+
+li:hover > .hp-w-remove,
+.hp-w-remove:focus-visible {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .hp-w-remove {
+    opacity: 1;
+  }
+}
+
+/* Clock */
+.hp-w-clock {
+  display: grid;
+}
+
+.hp-w-clock-time {
+  font-size: 2.2rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.hp-w-clock-meta {
+  font-size: 0.85rem;
+  color: var(--on-surface-muted);
+}
+
+/* Notes */
+.hp-w-notes {
+  display: block;
+  width: 100%;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+/* To-do and bookmarks */
+.hp-w-todo ul,
+.hp-w-bookmarks ul,
+.hp-w-places,
+.hp-w-system {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hp-w-todo li,
+.hp-w-bookmarks li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  padding: 4px 0;
+}
+
+.hp-w-todo label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.hp-w-todo input[type="checkbox"] {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.hp-w-todo .is-done span {
+  color: var(--on-surface-muted);
+  text-decoration: line-through;
+}
+
+.hp-w-todo form {
+  margin-top: 8px;
+}
+
+.hp-w-todo form input {
+  width: 100%;
+}
+
+.hp-w-todo-clear {
+  margin-top: 6px;
+  font-size: 0.85rem;
+}
+
+.hp-w-bookmarks a {
+  overflow: hidden;
+  color: inherit;
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.hp-w-bookmarks a:hover {
+  color: var(--accent);
+}
+
+/* Weather */
+.hp-w-weather-now {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hp-w-weather-temp {
+  font-size: 2.2rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.hp-w-weather-meta {
+  display: grid;
+  min-width: 0;
+  font-size: 0.85rem;
+  color: var(--on-surface-muted);
+}
+
+.hp-w-weather-meta strong {
+  color: var(--on-surface);
+}
+
+.hp-w-forecast {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hp-w-forecast li {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 8px 4px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-variant);
+  font-size: 0.85rem;
+}
+
+.hp-w-forecast small {
+  color: var(--on-surface-muted);
+}
+
+.hp-w-weather-change {
+  margin-top: 10px;
+  font-size: 0.8rem;
+}
+
+/* Server stats */
+.hp-w-system {
+  gap: 10px;
+}
+
+.hp-w-system li {
+  display: grid;
+}
+
+.hp-w-system-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+}
+
+.hp-w-system small {
+  font-size: 0.78rem;
+  color: var(--on-surface-muted);
+}
