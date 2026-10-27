@@ -40,6 +40,9 @@ func main() {
 }
 
 func run(args []string) error {
+	if len(args) > 0 && args[0] == "lint-theme" {
+		return lintTheme(os.Stdout, args[1:])
+	}
 	flags := flag.NewFlagSet("haepage", flag.ContinueOnError)
 	addr := flags.String("addr", envOr("HAEPAGE_ADDR", ":8080"), "listen address")
 	dataDir := flags.String("data", envOr("HAEPAGE_DATA", "./data"), "data folder (config, secrets, cache)")

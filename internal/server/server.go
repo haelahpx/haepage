@@ -90,6 +90,8 @@ func New(opts Options) http.Handler {
 	if opts.Health {
 		capabilities = append(capabilities, "health.full")
 	}
+	capabilities = append(capabilities, "themes.lint")
+	mux.HandleFunc("POST /api/themes/lint", lintTheme(opts.Themes))
 	if opts.Themes != nil {
 		capabilities = append(capabilities, "themes.import")
 		mux.HandleFunc("POST /api/themes/import", newLimiter(10).wrap(importTheme(opts.Themes)))

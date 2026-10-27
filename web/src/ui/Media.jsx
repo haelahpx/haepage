@@ -39,7 +39,7 @@ function Poster({ src, label }) {
 function Progress({ pct }) {
   return (
     <div class="hp-bar" style={{ "--avatar-hue": 280 }}>
-      <span class="hp-bar-fill" style={{ width: `${Math.max(0, Math.min(100, pct))}%` }} />
+      <span class="hp-bar-fill" style={{ "--pct": `${Math.max(0, Math.min(100, pct))}%` }} />
     </div>
   );
 }

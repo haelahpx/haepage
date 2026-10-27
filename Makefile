@@ -45,6 +45,7 @@ test: web/node_modules
 lint: web/node_modules
 	@test -z "$$(gofmt -l .)" || (gofmt -l . && echo "run gofmt -w ." && exit 1)
 	go vet ./...
+	go run ./cmd/haepage lint-theme -strict themes/*/style.css
 	npm --prefix web run validate
 
 ## bench: idle memory and CPU of the built binary

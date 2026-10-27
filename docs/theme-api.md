@@ -90,7 +90,7 @@ Style both layouts. In `bento`, groups are tiles (`.hp-bento .hp-group.hp-tile`)
 | Page | `hp-app` · `hp-header` · `hp-header-end` · `hp-title` · `hp-empty` |
 | Bento | `hp-bento` · `hp-tile` · `hp-tile--hero` · `hp-tile--wide` · `hp-tile--status` · `hp-hero-clock` · `hp-hero-main` · `hp-hero-eyebrow` · `hp-hero-home` · `hp-hero-actions` · `hp-greeting` |
 | Status tile | `hp-tile--status` (with `data-state="up"`, `"down"` or `"idle"`) · `hp-status-big` · `hp-meter` · `hp-meter-segments` · `hp-seg` · `hp-seg--up` · `hp-seg--down` · `hp-seg--unknown` · `hp-meter-bar` · `hp-meter-up` · `hp-meter-down` · `hp-meter-rest` · `hp-status-headline` · `hp-down-list`. Show either the segments (one per service) or the bar; the bar is the default. |
-| Server tile | `hp-tile--system` · `hp-metrics` · `hp-metric` · `hp-metric-body` · `hp-metric-top` · `hp-metric-label` · `hp-metric-value` · `hp-metric-detail` · `hp-bar` · `hp-bar-fill` (reads `--avatar-hue`) · `hp-system-foot` |
+| Server tile | `hp-tile--system` · `hp-metrics` · `hp-metric` · `hp-metric-body` · `hp-metric-top` · `hp-metric-label` · `hp-metric-value` · `hp-metric-detail` · `hp-bar` · `hp-bar-fill` (reads `--avatar-hue`; it is as wide as the bar and slid into place with `transform`, so keep `overflow: hidden` on `hp-bar`) · `hp-system-foot` |
 | Clock | `hp-clock` · `hp-clock-time` · `hp-clock-h` · `hp-clock-sep` · `hp-clock-m` · `hp-clock-ampm` · `hp-clock-date` |
 | Search | `hp-search` · `hp-search-icon` · `hp-search-input` · `hp-search-kbd` · `hp-search-results` · `hp-result` · `hp-result--active` · `hp-result-name` · `hp-result-meta` |
 | Services | `hp-group` · `hp-group-title` · `hp-group-icon` · `hp-group-name` · `hp-group-sub` · `hp-grid` · `hp-card` · `hp-card-icon` · `hp-avatar` · `hp-card-body` · `hp-card-title` · `hp-card-desc` · `hp-card-chevron` (hidden unless a theme shows it) |
@@ -133,7 +133,7 @@ Make sure the theme still looks right on `lite`, because many phones will use it
 
 ## Performance rules
 
-These keep heavy themes smooth. The theme linter checks them.
+These keep heavy themes smooth. The theme linter checks them: run `haepage lint-theme style.css` (or a link), add `-strict` to fail on warnings, or see the same checks in Settings in Server mode.
 
 - Animate only `transform` and `opacity`. Never animate `width`, `height`, `top`, `left`, `filter` or `backdrop-filter`.
 - Keep live `backdrop-filter` to small areas. For frosted glass over a wallpaper, prefer `--wallpaper-blurred` as a background.

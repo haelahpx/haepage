@@ -36,9 +36,9 @@ func TestPing(t *testing.T) {
 	if ct := rec.Header().Get("Content-Type"); ct != "application/json" {
 		t.Errorf("Content-Type = %q", ct)
 	}
-	// An empty list must be [] and not null, or the frontend would crash on it.
-	if !strings.Contains(rec.Body.String(), `"capabilities":[]`) {
-		t.Errorf("capabilities not an empty array: %s", rec.Body)
+	// With no optional features on, only the always-available lint is listed.
+	if !strings.Contains(rec.Body.String(), `"capabilities":["themes.lint"]`) {
+		t.Errorf("capabilities = %s, want only themes.lint", rec.Body)
 	}
 	var got PingResponse
 	if err := json.Unmarshal(rec.Body.Bytes(), &got); err != nil {
@@ -117,7 +117,7 @@ func TestSystemStats(t *testing.T) {
 	h := New(Options{Static: built(), System: fakeSystem{stats: system.Stats{Hostname: "box", CPU: system.CPU{Percent: 12.5}}}})
 
 	rec := get(t, h, http.MethodGet, "/api/ping")
-	if !strings.Contains(rec.Body.String(), `"capabilities":["system"]`) {
+	if !strings.Contains(rec.Body.String(), `"capabilities":["system","themes.lint"]`) {
 		t.Errorf("ping = %s, want the system capability", rec.Body)
 	}
 

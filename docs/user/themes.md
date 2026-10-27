@@ -34,6 +34,17 @@ Hosts of services already in your config are allowed without this.
 
 A theme file is refused if it isn't CSS (for example a web page), is larger than 512 KB, or uses `@import`.
 
+### Checking a theme
+
+In Server mode, Settings lists anything in a link theme or your custom CSS that may slow the page down (such as animating `width` or a live blur on every card) or stop it working (such as `@import`), with line numbers.
+
+To check a file before you share it:
+
+```sh
+haepage lint-theme my-theme.css
+haepage lint-theme -strict https://themes.example.com/red.css   # fail on warnings too
+```
+
 ### Static mode
 
 The browser fetches the file itself, so the site hosting it must allow other pages to load its files (CORS). Most file and code hosts do. If it doesn't, Haepage shows an error and keeps your current theme.
