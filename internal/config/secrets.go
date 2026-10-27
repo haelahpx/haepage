@@ -72,3 +72,14 @@ func (s *Secrets) Set(name, value string) error {
 	s.m = next
 	return nil
 }
+
+// Names lists the secrets that are set.
+func (s *Secrets) Names() []string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	names := make([]string, 0, len(s.m))
+	for k := range s.m {
+		names = append(names, k)
+	}
+	return names
+}

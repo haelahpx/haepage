@@ -79,6 +79,16 @@ type Config struct {
 	Settings  Settings            `json:"settings"`
 	Services  []Service           `json:"services"`
 	Overrides map[string]Override `json:"overrides"`
+	Widgets   []Widget            `json:"widgets"`
+}
+
+// Widget is a widgets[] entry. Options stay raw: only the server-side
+// widgets (the API proxy) read them.
+type Widget struct {
+	ID      string          `json:"id"`
+	Type    string          `json:"type"`
+	Refresh int             `json:"refresh,omitempty"` // seconds
+	Options json.RawMessage `json:"options,omitempty"`
 }
 
 // Store holds haepage.json in memory and writes it back atomically.

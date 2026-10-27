@@ -10,6 +10,7 @@ import (
 
 	"github.com/haelahpx/haepage/internal/config"
 	"github.com/haelahpx/haepage/internal/integrations"
+	"github.com/haelahpx/haepage/internal/proxy"
 	"github.com/haelahpx/haepage/internal/store"
 	"github.com/haelahpx/haepage/internal/system"
 	"github.com/haelahpx/haepage/internal/tailscale"
@@ -35,6 +36,8 @@ type Options struct {
 	Themes       *themes.Remote        // theme import by link; nil turns it off
 	Wallpapers   *wallpaper.Library    // the wallpaper folder; nil turns wallpapers off
 	Tailscale    *tailscale.Client     // tailscaled's local API; nil turns the devices panel off
+	Widgets      *proxy.Widgets        // the API widget proxy; nil turns it off
+	Secrets      *config.Secrets       // secrets.json, for the secrets API; nil turns it off
 }
 
 // SystemReader provides host stats.
@@ -94,6 +97,16 @@ func New(opts Options) http.Handler {
 	}
 	if opts.Health {
 		capabilities = append(capabilities, "health.full")
+	}
+	if opts.Widgets != nil {
+		capabilities = append(capabilities, "widgets.proxy")
+		mux.HandleFunc("GET /api/widgets/{id}/data", newLimiter(60).wrap(widgetData(opts.Widgets)))
+	}
+	if opts.Secrets != nil {
+		capabilities = append(capabilities, "secrets")
+		mux.HandleFunc("GET /api/secrets", listSecrets(opts.Secrets))
+		mux.HandleFunc("PUT /api/secrets/{name}", putSecret(opts.Secrets))
+		mux.HandleFunc("DELETE /api/secrets/{name}", putSecret(opts.Secrets))
 	}
 	if opts.Tailscale != nil {
 		capabilities = append(capabilities, "tailscale.devices")

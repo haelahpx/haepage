@@ -1615,3 +1615,180 @@ li:hover > .hp-w-remove,
   font-size: 0.78rem;
   color: var(--on-surface-muted);
 }
+
+/* API widget */
+.hp-w-api-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.hp-w-api-stats div {
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-variant);
+}
+
+.hp-w-api-stats dd {
+  margin: 0;
+  overflow: hidden;
+  font-size: 1.5rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.hp-w-api-stats dt {
+  font-size: 0.8rem;
+  color: var(--on-surface-muted);
+}
+
+.hp-w-api-list {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hp-w-api-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  padding: 5px 0;
+  font-size: 0.9rem;
+}
+
+.hp-w-api-list li > span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.hp-w-api-muted {
+  color: var(--on-surface-muted);
+}
+
+.hp-w-api-table {
+  overflow-x: auto;
+}
+
+.hp-w-api-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.hp-w-api-table th,
+.hp-w-api-table td {
+  padding: 5px 8px 5px 0;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.hp-w-api-table th {
+  font-weight: 600;
+  color: var(--on-surface-muted);
+}
+
+.hp-w-api-edit {
+  margin-top: 10px;
+  font-size: 0.8rem;
+}
+
+/* minmax(0, 1fr) and min-width: 0 let the form shrink to the tile;
+   fieldsets otherwise refuse to get narrower than their content. */
+.hp-w-api-editor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  font-size: 0.9rem;
+}
+
+.hp-w-api-editor label {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
+}
+
+.hp-w-api-editor fieldset {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.hp-w-api-editor .hp-link-button {
+  justify-self: start;
+}
+
+.hp-w-api-row select {
+  flex: none;
+  max-width: 6.5rem;
+}
+
+.hp-w-api-editor legend {
+  padding: 0;
+  margin-bottom: 4px;
+}
+
+.hp-w-api-editor legend small {
+  display: block;
+  color: var(--on-surface-muted);
+}
+
+.hp-w-api-editor input,
+.hp-w-api-editor select {
+  min-width: 0;
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-variant);
+  color: inherit;
+  font: inherit;
+}
+
+.hp-w-api-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.hp-w-api-row > input {
+  flex: 1 1 7rem;
+}
+
+.hp-w-api-row .hp-w-remove {
+  opacity: 1;
+}
+
+.hp-w-api-suggest {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.hp-w-api-suggest small {
+  flex-basis: 100%;
+  color: var(--on-surface-muted);
+}
+
+.hp-w-api-suggest .hp-chip {
+  border: 0;
+  cursor: pointer;
+}
+
+.hp-w-api-actions {
+  display: flex;
+  gap: 8px;
+}
