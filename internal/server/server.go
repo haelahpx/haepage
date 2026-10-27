@@ -12,6 +12,7 @@ import (
 	"github.com/haelahpx/haepage/internal/integrations"
 	"github.com/haelahpx/haepage/internal/store"
 	"github.com/haelahpx/haepage/internal/system"
+	"github.com/haelahpx/haepage/internal/tailscale"
 	"github.com/haelahpx/haepage/internal/themes"
 	"github.com/haelahpx/haepage/internal/wallpaper"
 )
@@ -33,6 +34,7 @@ type Options struct {
 	Health       bool                  // the server runs health checks
 	Themes       *themes.Remote        // theme import by link; nil turns it off
 	Wallpapers   *wallpaper.Library    // the wallpaper folder; nil turns wallpapers off
+	Tailscale    *tailscale.Client     // tailscaled's local API; nil turns the devices panel off
 }
 
 // SystemReader provides host stats.
@@ -92,6 +94,10 @@ func New(opts Options) http.Handler {
 	}
 	if opts.Health {
 		capabilities = append(capabilities, "health.full")
+	}
+	if opts.Tailscale != nil {
+		capabilities = append(capabilities, "tailscale.devices")
+		mux.HandleFunc("GET /api/tailscale/devices", tailscaleDevices(opts.Tailscale))
 	}
 	if opts.Wallpapers != nil {
 		capabilities = append(capabilities, "wallpapers")

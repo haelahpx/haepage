@@ -27,6 +27,7 @@ import (
 	"github.com/haelahpx/haepage/internal/server"
 	"github.com/haelahpx/haepage/internal/store"
 	"github.com/haelahpx/haepage/internal/system"
+	"github.com/haelahpx/haepage/internal/tailscale"
 	"github.com/haelahpx/haepage/internal/themes"
 	"github.com/haelahpx/haepage/internal/version"
 	"github.com/haelahpx/haepage/internal/wallpaper"
@@ -53,6 +54,8 @@ func run(args []string) error {
 	noDocker := flags.Bool("no-docker", false, "turn off Docker discovery")
 	noPorts := flags.Bool("no-ports", false, "turn off listening-port discovery")
 	noHealth := flags.Bool("no-health", false, "turn off server-side health checks")
+	tsSocket := flags.String("tailscale-socket", envOr("HAEPAGE_TAILSCALE_SOCKET", tailscale.DefaultSocket), "tailscaled socket, for the devices panel")
+	noTailscale := flags.Bool("no-tailscale", false, "turn off the Tailscale devices panel")
 	checkHost := flags.String("check-host", envOr("HAEPAGE_CHECK_HOST", "127.0.0.1"), "host that health checks use for services on this machine (host.docker.internal when Haepage runs in Docker)")
 	logFormat := flags.String("log-format", envOr("HAEPAGE_LOG_FORMAT", "text"), "log format: text or json")
 	logLevel := flags.String("log-level", envOr("HAEPAGE_LOG_LEVEL", "info"), "log level: debug, info, warn or error")
@@ -139,6 +142,11 @@ func run(args []string) error {
 		opts.System = system.NewSampler("/", *dataDir)
 	}
 	guard := &proxy.Guard{AllowPrivate: func(host string) bool { return cfg.Config().AllowsPrivateHost(host) }}
+	if !*noTailscale {
+		if opts.Tailscale, err = tailscale.New(*tsSocket); err != nil {
+			logger.Info("tailscale devices off", "reason", err)
+		}
+	}
 	opts.Wallpapers = &wallpaper.Library{Dir: filepath.Join(*dataDir, "wallpapers"), Cache: filepath.Join(*dataDir, "cache", "wallpapers")}
 	opts.Themes = &themes.Remote{Dir: filepath.Join(*dataDir, "cache", "themes"), Client: guard.Client(10 * time.Second)}
 

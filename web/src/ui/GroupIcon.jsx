@@ -24,7 +24,7 @@ const PATHS = {
 };
 
 // Fixed colors for system metrics, like the system settings app.
-export const METRIC_HUES = { cpu: 211, memory: 145, disk: 28, network: 265, server: 222, play: 280, request: 330, download: 150, calendar: 205, bell: 32, link: 222 };
+export const METRIC_HUES = { cpu: 211, memory: 145, disk: 28, network: 265, server: 222, play: 280, request: 330, download: 150, calendar: 205, bell: 32, link: 222, tailnet: 190 };
 
 // A colored icon square, styled like the group icons.
 export function IconTile({ icon, hue }) {
