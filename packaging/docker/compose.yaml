@@ -1,0 +1,41 @@
+# Haepage with Docker discovery through a read-only socket proxy.
+#
+#   docker compose up -d      then open http://<this-machine>:8080
+#
+# Haepage never gets the Docker socket itself. The proxy only allows
+# reading containers and events, so Haepage can't start, stop or change
+# anything (mounting the socket read-only would not stop write calls).
+services:
+  haepage:
+    image: ghcr.io/haelahpx/haepage:latest
+    container_name: haepage
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - haepage-data:/data
+    environment:
+      DOCKER_HOST: tcp://socket-proxy:2375
+      # Health checks reach services published on this machine through the
+      # Docker host, not the container's own loopback.
+      HAEPAGE_CHECK_HOST: host.docker.internal
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    # Port discovery only sees the container's own network, so it is off.
+    command: ["--no-ports"]
+    depends_on:
+      - socket-proxy
+
+  socket-proxy:
+    image: tecnativa/docker-socket-proxy:latest
+    container_name: haepage-socket-proxy
+    restart: unless-stopped
+    environment:
+      CONTAINERS: 1
+      EVENTS: 1
+      POST: 0
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+volumes:
+  haepage-data:

@@ -1,0 +1,16 @@
+{
+  "name": "Glass",
+  "author": "Haepage",
+  "theme-api": 1,
+  "layout": "grid",
+  "accent": "#007AFF",
+  "variants": [
+    "light",
+    "dark"
+  ],
+  "tiers": [
+    "full",
+    "balanced",
+    "lite"
+  ]
+}

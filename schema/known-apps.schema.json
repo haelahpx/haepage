@@ -24,6 +24,11 @@
           "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
           "icon": { "type": "string" },
           "group": { "type": "string" },
+          "integration": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$",
+            "description": "Id of the built-in integration that adds live data for this app"
+          },
           "check": {
             "type": "object",
             "properties": { "path": { "type": "string" } }

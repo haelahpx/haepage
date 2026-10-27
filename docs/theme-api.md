@@ -45,6 +45,9 @@ Haepage sets these. Your CSS can target them.
 | `data-scheme` | `light`, `dark` |
 | `data-fx` | `full`, `balanced`, `lite` |
 | `data-mode` | `static`, `server` |
+| `data-style` | `bento` (tiles, the default) or `simple` (a plain list of groups) |
+
+Style both layouts. In `bento`, groups are tiles (`.hp-bento .hp-group.hp-tile`) and cards sit inside them, so most themes make cards lighter there.
 
 ## Variables
 
@@ -60,12 +63,19 @@ Haepage sets these. Your CSS can target them.
 | `--on-surface` ★ | Main text |
 | `--on-surface-muted` ★ | Secondary text |
 | `--border` | Hairlines around cards |
+| `--surface-low` | Cards inside bento tiles |
+| `--bg-image` | Extra page background layer (gradients), drawn on a fixed layer |
 | `--radius` ★ | Card corner radius |
-| `--radius-sm` | Icons, chips, small elements |
-| `--gap` | Space between cards |
-| `--card-pad` | Padding inside a card |
+| `--radius-sm` | Chips, inputs, small elements |
+| `--tile-radius` | Bento tile corner radius |
+| `--icon-radius` | Service icon corner radius |
+| `--gap` | Space between cards and tiles |
+| `--card-pad`, `--tile-pad` | Padding inside a card or tile |
 | `--card-min` | Minimum card width |
 | `--shadow` | Card shadow |
+| `--tile-shadow` | Tile shadow (inset highlights work well here) |
+| `--ring-track` | Empty part of meters and bars |
+| `--ease` | Default easing curve |
 | `--blur` | Backdrop blur radius for glass effects |
 | `--font`, `--font-mono` | Font stacks (system fonts by default) |
 | `--status-up`, `--status-down`, `--status-unknown` | Health dot colors |
@@ -74,7 +84,21 @@ Haepage sets these. Your CSS can target them.
 
 ## Classes
 
-`hp-app` · `hp-header` · `hp-title` · `hp-clock` · `hp-search` · `hp-search-input` · `hp-search-results` · `hp-result` · `hp-result--active` · `hp-group` · `hp-group-title` · `hp-grid` · `hp-card` · `hp-card-icon` · `hp-card-body` · `hp-card-title` · `hp-card-desc` · `hp-status` · `hp-status--up` · `hp-status--down` · `hp-status--unknown` · `hp-badge` · `hp-badge--new` · `hp-widget` · `hp-widget-title` · `hp-widget-body` · `hp-palette` · `hp-toast` · `hp-empty`
+| Area | Classes |
+| --- | --- |
+| Page | `hp-app` · `hp-header` · `hp-header-end` · `hp-title` · `hp-empty` |
+| Bento | `hp-bento` · `hp-tile` · `hp-tile--hero` · `hp-tile--wide` · `hp-tile--status` · `hp-hero-clock` · `hp-hero-main` · `hp-hero-eyebrow` · `hp-hero-home` · `hp-hero-actions` · `hp-greeting` |
+| Status tile | `hp-tile--status` (with `data-state="up"`, `"down"` or `"idle"`) · `hp-status-big` · `hp-meter` · `hp-meter-segments` · `hp-seg` · `hp-seg--up` · `hp-seg--down` · `hp-seg--unknown` · `hp-meter-bar` · `hp-meter-up` · `hp-meter-down` · `hp-meter-rest` · `hp-status-headline` · `hp-down-list`. Show either the segments (one per service) or the bar; the bar is the default. |
+| Server tile | `hp-tile--system` · `hp-metrics` · `hp-metric` · `hp-metric-body` · `hp-metric-top` · `hp-metric-label` · `hp-metric-value` · `hp-metric-detail` · `hp-bar` · `hp-bar-fill` (reads `--avatar-hue`) · `hp-system-foot` |
+| Clock | `hp-clock` · `hp-clock-time` · `hp-clock-h` · `hp-clock-sep` · `hp-clock-m` · `hp-clock-ampm` · `hp-clock-date` |
+| Search | `hp-search` · `hp-search-icon` · `hp-search-input` · `hp-search-kbd` · `hp-search-results` · `hp-result` · `hp-result--active` · `hp-result-name` · `hp-result-meta` |
+| Services | `hp-group` · `hp-group-title` · `hp-group-icon` · `hp-group-name` · `hp-group-sub` · `hp-grid` · `hp-card` · `hp-card-icon` · `hp-avatar` · `hp-card-body` · `hp-card-title` · `hp-card-desc` · `hp-card-chevron` (hidden unless a theme shows it) |
+| Status | `hp-status` · `hp-status--up` · `hp-status--down` · `hp-status--unknown` · `hp-status-label` · `hp-status-label--up` · `hp-status-label--down` (hidden unless a theme shows it) · `hp-badge` · `hp-badge--new` |
+| Controls | `hp-button` · `hp-button--quiet` · `hp-icon-button` · `hp-link` · `hp-field` · `hp-error` |
+| Panels | `hp-banner` · `hp-banner--error` · `hp-drawer` · `hp-drawer-backdrop` · `hp-palette` · `hp-toast` |
+| Widgets | `hp-widget` · `hp-widget-title` · `hp-widget-body` |
+
+`hp-avatar` is the colored letter shown when a service has no icon, and `hp-group-icon` is the icon square in a bento group header. Both read `--avatar-hue` (0 to 359), which Haepage sets per service or group.
 
 ## Light and dark
 

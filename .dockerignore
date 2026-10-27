@@ -1,0 +1,9 @@
+.git
+.github
+bin
+data
+docs/dev
+web/node_modules
+web/dist
+haepage
+*.zip

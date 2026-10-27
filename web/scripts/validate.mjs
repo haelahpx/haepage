@@ -9,7 +9,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "../..");
 
 const checks = [
   ["schema/haepage.schema.json", ["haepage.example.json"]],
-  ["schema/theme.schema.json", ["themes/android/theme.json", "themes/apple/theme.json"]],
+  ["schema/theme.schema.json", ["themes/tonal/theme.json", "themes/glass/theme.json"]],
   ["schema/widget.schema.json", []],
   ["schema/known-apps.schema.json", []],
 ];

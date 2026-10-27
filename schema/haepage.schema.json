@@ -12,6 +12,7 @@
       "properties": {
         "title": { "type": "string" },
         "theme": { "type": "string", "description": "Built-in or installed theme id, or an https:// URL" },
+        "style": { "enum": ["bento", "simple"], "description": "Page layout: bento tiles or a simple list of groups" },
         "scheme": { "enum": ["auto", "light", "dark"] },
         "fx": { "enum": ["auto", "full", "balanced", "lite"] },
         "search": { "type": "string", "description": "Default search engine id" },

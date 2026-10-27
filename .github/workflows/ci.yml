@@ -43,6 +43,20 @@ jobs:
           install-go: false
       - run: go test -race ./...
 
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -f packaging/docker/Dockerfile -t haepage:ci .
+      - name: Smoke test
+        run: |
+          docker run -d --name hp -p 8080:8080 haepage:ci --no-docker --no-ports
+          for i in $(seq 30); do curl -fs localhost:8080/api/ping >/dev/null && break; sleep 1; done
+          curl -fs localhost:8080/api/ping | grep -q '"app":"haepage"'
+          curl -fs localhost:8080/ | grep -q '<div id="app">'
+          docker image ls haepage:ci --format 'image size: {{.Size}}' | tee -a "$GITHUB_STEP_SUMMARY"
+
   build:
     needs: [web, go]
     runs-on: ubuntu-latest

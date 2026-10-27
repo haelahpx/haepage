@@ -5,7 +5,7 @@ COMMIT  ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo none)
 DATE    ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 LDFLAGS := -s -w -X $(PKG).Version=$(VERSION) -X $(PKG).Commit=$(COMMIT) -X $(PKG).Date=$(DATE)
 
-.PHONY: all web build dev test lint bench clean
+.PHONY: all web build static dev test lint bench clean
 
 all: build
 
@@ -20,6 +20,17 @@ web: web/node_modules
 ## build: build the frontend, then the static binary with it embedded
 build: web
 	CGO_ENABLED=0 go build -trimpath -ldflags "$(LDFLAGS)" -o $(BINARY) ./cmd/haepage
+
+## static: Static mode bundle, bin/haepage-static-<version>.zip
+static: web
+	rm -rf bin/static && mkdir -p bin/static/haepage
+	cp -r web/dist/. bin/static/haepage/
+	rm -f bin/static/haepage/.gitkeep
+	cp haepage.example.json bin/static/haepage/haepage.json
+	cp docs/user/static-mode.md bin/static/haepage/README.md
+	cp LICENSE THIRD_PARTY_NOTICES.md bin/static/haepage/
+	cd bin/static && rm -f ../haepage-static-$(VERSION).zip && zip -qr ../haepage-static-$(VERSION).zip haepage
+	@echo "bin/haepage-static-$(VERSION).zip"
 
 ## dev: rebuild the frontend and run the server from disk without caching
 dev: web
@@ -41,5 +52,5 @@ bench: build
 	tools/bench/bench.sh ./$(BINARY)
 
 clean:
-	rm -f $(BINARY)
+	rm -rf $(BINARY) bin/static
 	find web/dist -mindepth 1 ! -name .gitkeep -delete

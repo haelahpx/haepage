@@ -1,0 +1,2 @@
+# systemd-sysusers(8): the unprivileged user Haepage runs as.
+u haepage - "Haepage" /var/lib/haepage /usr/sbin/nologin

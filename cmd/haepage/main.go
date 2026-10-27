@@ -8,14 +8,23 @@ import (
 	"fmt"
 	"io/fs"
 	"log/slog"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"runtime/debug"
+	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
+	"github.com/haelahpx/haepage/internal/config"
+	"github.com/haelahpx/haepage/internal/discovery"
+	"github.com/haelahpx/haepage/internal/health"
 	"github.com/haelahpx/haepage/internal/server"
+	"github.com/haelahpx/haepage/internal/store"
+	"github.com/haelahpx/haepage/internal/system"
 	"github.com/haelahpx/haepage/internal/version"
 	"github.com/haelahpx/haepage/web"
 )
@@ -30,6 +39,14 @@ func main() {
 func run(args []string) error {
 	flags := flag.NewFlagSet("haepage", flag.ContinueOnError)
 	addr := flags.String("addr", envOr("HAEPAGE_ADDR", ":8080"), "listen address")
+	dataDir := flags.String("data", envOr("HAEPAGE_DATA", "./data"), "data folder (config, secrets, cache)")
+	configPath := flags.String("config", envOr("HAEPAGE_CONFIG", ""), "config file (default <data>/haepage.json)")
+	noSystem := flags.Bool("no-system", false, "turn off the server stats tile and /api/system")
+	dockerHost := flags.String("docker", envOr("DOCKER_HOST", "unix:///var/run/docker.sock"), "Docker socket or socket proxy (unix:// or tcp://)")
+	noDocker := flags.Bool("no-docker", false, "turn off Docker discovery")
+	noPorts := flags.Bool("no-ports", false, "turn off listening-port discovery")
+	noHealth := flags.Bool("no-health", false, "turn off server-side health checks")
+	checkHost := flags.String("check-host", envOr("HAEPAGE_CHECK_HOST", "127.0.0.1"), "host that health checks use for services on this machine (host.docker.internal when Haepage runs in Docker)")
 	logFormat := flags.String("log-format", envOr("HAEPAGE_LOG_FORMAT", "text"), "log format: text or json")
 	logLevel := flags.String("log-level", envOr("HAEPAGE_LOG_LEVEL", "info"), "log level: debug, info, warn or error")
 	dev := flags.Bool("dev", false, "serve web/dist from disk (run from the repo root) and turn off caching")
@@ -62,19 +79,64 @@ func run(args []string) error {
 		static = os.DirFS("web/dist")
 	}
 
-	srv := &http.Server{
-		Addr:              *addr,
-		Handler:           server.New(server.Options{Version: version.Version, Static: static, Dev: *dev}),
-		ReadHeaderTimeout: 10 * time.Second,
-		// No WriteTimeout: server-sent events keep responses open.
+	if *configPath == "" {
+		*configPath = filepath.Join(*dataDir, "haepage.json")
+	}
+	cfg, err := config.Open(*configPath)
+	if err != nil {
+		return err
 	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
+	reg := store.NewRegistry()
+	svc := &services{cfg: cfg, reg: reg, isLocal: discovery.LocalHosts(), checkHost: *checkHost}
+	cfg.OnChange = svc.configChanged
+	svc.remerge()
+	go cfg.Watch(ctx, 2*time.Second, func(err error) { logger.Warn("config on disk is invalid; keeping the last good one", "err", err) })
+
+	runner := &discovery.Runner{OnChange: svc.setDetected, Logger: logger, OwnPort: portOf(*addr)}
+	if runner.Apps, err = discovery.LoadKnownApps(); err != nil {
+		return err
+	}
+	if !*noDocker {
+		if runner.Docker, err = dockerClient(*dockerHost); err != nil {
+			logger.Info("docker discovery off", "reason", err)
+		}
+	}
+	if !*noPorts {
+		runner.Ports = discovery.NewPortScanner()
+	}
+	detect := runner.Docker != nil || runner.Ports != nil
+	if detect {
+		go runner.Run(ctx)
+	}
+	if !*noHealth {
+		sched := &health.Scheduler{Targets: svc.targets, Report: reg.SetHealth}
+		go sched.Run(ctx)
+	}
+
+	opts := server.Options{
+		Version: version.Version, Static: static, Dev: *dev,
+		Config: cfg, Registry: reg, Detect: detect, Health: !*noHealth,
+	}
+	if !*noSystem {
+		opts.System = system.NewSampler("/", *dataDir)
+	}
+
+	srv := &http.Server{
+		Addr:              *addr,
+		Handler:           server.New(opts),
+		ReadHeaderTimeout: 10 * time.Second,
+		// No WriteTimeout: server-sent events keep responses open. Requests
+		// share the root context, so open event streams end on shutdown.
+		BaseContext: func(net.Listener) context.Context { return ctx },
+	}
+
 	errc := make(chan error, 1)
 	go func() { errc <- srv.ListenAndServe() }()
-	logger.Info("listening", "addr", *addr, "version", version.Version, "dev", *dev)
+	logger.Info("listening", "addr", *addr, "version", version.Version, "config", *configPath, "docker", runner.Docker != nil, "ports", runner.Ports != nil, "dev", *dev)
 
 	select {
 	case err := <-errc:
@@ -101,6 +163,27 @@ func newLogger(format, level string) (*slog.Logger, error) {
 		return slog.New(slog.NewJSONHandler(os.Stderr, opts)), nil
 	}
 	return nil, fmt.Errorf("unknown log format %q (want text or json)", format)
+}
+
+// dockerClient returns nil with a reason when the default socket is absent,
+// so machines without Docker start quietly.
+func dockerClient(host string) (*discovery.DockerClient, error) {
+	if path, ok := strings.CutPrefix(host, "unix://"); ok {
+		if _, err := os.Stat(path); err != nil {
+			return nil, fmt.Errorf("no Docker socket at %s", path)
+		}
+	}
+	return discovery.NewDockerClient(host)
+}
+
+// portOf returns the port of a listen address like ":8080".
+func portOf(addr string) int {
+	_, p, err := net.SplitHostPort(addr)
+	if err != nil {
+		return 0
+	}
+	n, _ := strconv.Atoi(p)
+	return n
 }
 
 func envOr(key, fallback string) string {

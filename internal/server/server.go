@@ -4,7 +4,12 @@ package server
 import (
 	"encoding/json"
 	"io/fs"
+	"log/slog"
 	"net/http"
+
+	"github.com/haelahpx/haepage/internal/config"
+	"github.com/haelahpx/haepage/internal/store"
+	"github.com/haelahpx/haepage/internal/system"
 )
 
 // APIVersion is the version of the /api contract. It changes only on a
@@ -13,9 +18,19 @@ const APIVersion = 1
 
 // Options configures the HTTP handler.
 type Options struct {
-	Version string
-	Static  fs.FS // frontend build output, rooted at the folder holding index.html
-	Dev     bool  // turn off browser caching
+	Version  string
+	Static   fs.FS           // frontend build output, rooted at the folder holding index.html
+	Dev      bool            // turn off browser caching
+	System   SystemReader    // host stats for /api/system; nil turns the endpoint off
+	Config   *config.Store   // haepage.json; nil turns the config API off
+	Registry *store.Registry // merged services; nil turns services and events off
+	Detect   bool            // discovery is running
+	Health   bool            // the server runs health checks
+}
+
+// SystemReader provides host stats.
+type SystemReader interface {
+	Read() (system.Stats, error)
 }
 
 // PingResponse is the body of GET /api/ping. The frontend turns features on
@@ -37,8 +52,33 @@ type PingAuth struct {
 
 // New returns the handler for every Haepage route.
 func New(opts Options) http.Handler {
+	capabilities := []string{}
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /api/ping", ping(opts.Version))
+	if opts.System != nil {
+		capabilities = append(capabilities, "system")
+		mux.HandleFunc("GET /api/system", systemStats(opts.System))
+	}
+	if opts.Config != nil {
+		capabilities = append(capabilities, "config.write")
+		mux.HandleFunc("GET /haepage.json", getConfig(opts.Config))
+		mux.HandleFunc("GET /api/config", getConfig(opts.Config))
+		mux.HandleFunc("PUT /api/config", putConfig(opts.Config))
+	}
+	if opts.Registry != nil {
+		capabilities = append(capabilities, "events")
+		mux.HandleFunc("GET /api/services", listServices(opts.Registry))
+		mux.HandleFunc("GET /api/events", events(opts.Registry))
+		if opts.Config != nil {
+			mux.HandleFunc("PUT /api/overrides/{id...}", putOverride(opts.Config, opts.Registry))
+		}
+	}
+	if opts.Detect {
+		capabilities = append(capabilities, "services.detect")
+	}
+	if opts.Health {
+		capabilities = append(capabilities, "health.full")
+	}
+	mux.HandleFunc("GET /api/ping", ping(opts.Version, capabilities))
 	mux.HandleFunc("GET /api/", func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusNotFound, map[string]string{"error": "not found"})
 	})
@@ -46,15 +86,27 @@ func New(opts Options) http.Handler {
 	return securityHeaders(mux)
 }
 
-func ping(version string) http.HandlerFunc {
+func ping(version string, capabilities []string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, PingResponse{
 			App:          "haepage",
 			Version:      version,
 			API:          APIVersion,
 			Auth:         PingAuth{Enabled: false, Role: "admin"},
-			Capabilities: []string{},
+			Capabilities: capabilities,
 		})
+	}
+}
+
+func systemStats(reader SystemReader) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		st, err := reader.Read()
+		if err != nil {
+			slog.Warn("reading system stats", "err", err)
+			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "system stats unavailable"})
+			return
+		}
+		writeJSON(w, http.StatusOK, st)
 	}
 }
 

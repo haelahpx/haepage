@@ -2,11 +2,14 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"testing/fstest"
+
+	"github.com/haelahpx/haepage/internal/system"
 )
 
 func get(t *testing.T, h http.Handler, method, path string) *httptest.ResponseRecorder {
@@ -100,6 +103,46 @@ func TestFrontendNotBuilt(t *testing.T) {
 	}
 	if !strings.Contains(rec.Body.String(), "not built") {
 		t.Errorf("body = %q", rec.Body)
+	}
+}
+
+type fakeSystem struct {
+	stats system.Stats
+	err   error
+}
+
+func (f fakeSystem) Read() (system.Stats, error) { return f.stats, f.err }
+
+func TestSystemStats(t *testing.T) {
+	h := New(Options{Static: built(), System: fakeSystem{stats: system.Stats{Hostname: "box", CPU: system.CPU{Percent: 12.5}}}})
+
+	rec := get(t, h, http.MethodGet, "/api/ping")
+	if !strings.Contains(rec.Body.String(), `"capabilities":["system"]`) {
+		t.Errorf("ping = %s, want the system capability", rec.Body)
+	}
+
+	rec = get(t, h, http.MethodGet, "/api/system")
+	var got system.Stats
+	if err := json.Unmarshal(rec.Body.Bytes(), &got); err != nil || rec.Code != http.StatusOK {
+		t.Fatalf("GET /api/system = %d %s", rec.Code, rec.Body)
+	}
+	if got.Hostname != "box" || got.CPU.Percent != 12.5 {
+		t.Errorf("stats = %+v", got)
+	}
+}
+
+func TestSystemStatsError(t *testing.T) {
+	h := New(Options{Static: built(), System: fakeSystem{err: errors.New("boom")}})
+	rec := get(t, h, http.MethodGet, "/api/system")
+	if rec.Code != http.StatusInternalServerError || strings.Contains(rec.Body.String(), "boom") {
+		t.Errorf("GET /api/system = %d %s, want a 500 without internal details", rec.Code, rec.Body)
+	}
+}
+
+func TestSystemOff(t *testing.T) {
+	rec := get(t, New(Options{Static: built()}), http.MethodGet, "/api/system")
+	if rec.Code != http.StatusNotFound {
+		t.Errorf("status = %d, want 404 when stats are off", rec.Code)
 	}
 }
 

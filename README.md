@@ -50,7 +50,8 @@ Share a theme, widget or layout with a single link.
 </td><td width="50%" valign="top">
 
 **Design and editing**
-- Android-style (Material You) and Apple-style (glass) themes
+- Two built-in themes: **Tonal** (bold tonal colors, playful shapes) and **Glass** (clean translucent tiles)
+- **Bento** layout (clock, greeting, search and a status ring as tiles) or **Simple**
 - Light and dark, with Full, Balanced and Lite effect tiers
 - Drag-and-drop editor, code panel, live preview
 - Wallpapers with pre-blurred glass (no expensive live blur)
@@ -102,20 +103,20 @@ Estimates of where each part stands. The bars are updated as milestones land.
 | | Part | Progress | What it means |
 | :---: | --- | :---: | --- |
 | ✅ | **Product and build plan** | <img src="docs/assets/progress/100.svg" width="80" alt="100%"> | Vision, two-mode architecture, data model, API contracts and milestones written down |
-| 🚧 | **Foundations** | <img src="docs/assets/progress/90.svg" width="80" alt="90%"> | Server skeleton with `/api/ping`, frontend build with size budgets, CI, JSON Schemas. Today: 8 MB idle RAM, 0 % idle CPU, 6.6 MB binary, 5.8 KB of JS. |
-| 🚧 | **Theme API v1** | <img src="docs/assets/progress/70.svg" width="80" alt="70%"> | [Contract written](docs/theme-api.md): variables, classes, light and dark, effect tiers. Both built-in themes follow it. Theme lint still to come. |
-| ⬜ | **Static mode** | <img src="docs/assets/progress/0.svg" width="80" alt="0%"> | The whole dashboard as plain files on any web server, no backend needed |
-| ⬜ | **Server mode** | <img src="docs/assets/progress/0.svg" width="80" alt="0%"> | One Go binary that serves the page, saves config and pushes live updates |
-| ⬜ | **Docker auto-discovery** | <img src="docs/assets/progress/0.svg" width="80" alt="0%"> | Containers show up as cards on their own, with names and icons from the known-apps list |
-| ⬜ | **Health checks** | <img src="docs/assets/progress/0.svg" width="80" alt="0%"> | Up and down dots with response time, checked on a jittered schedule |
-| ⬜ | **Search** | <img src="docs/assets/progress/0.svg" width="80" alt="0%"> | Local filter, keyboard first, web fallback with bangs |
-| ⬜ | **Android and Apple themes** | <img src="docs/assets/progress/0.svg" width="80" alt="0%"> | Two polished defaults, light and dark, each with three effect tiers |
+| ✅ | **Foundations** | <img src="docs/assets/progress/100.svg" width="80" alt="100%"> | Server skeleton with `/api/ping`, frontend build with size budgets, CI, JSON Schemas. Today: 8 MB idle RAM, 0 % idle CPU, 6.6 MB binary. |
+| 🚧 | **Theme API v1** | <img src="docs/assets/progress/80.svg" width="80" alt="80%"> | [Contract written](docs/theme-api.md): variables, classes, light and dark, effect tiers. Both built-in themes follow it. Theme lint still to come. |
+| 🚧 | **Static mode** | <img src="docs/assets/progress/90.svg" width="80" alt="90%"> | Works today: services, groups, search, settings, import and export from a plain folder. [Guide](docs/user/static-mode.md). 12 KB of JavaScript. |
+| ✅ | **Server mode** | <img src="docs/assets/progress/90.svg" width="80" alt="90%"> | Settings saved on the server for every device, live updates, server stats. [Install guide](docs/user/install.md). |
+| ✅ | **Docker auto-discovery** | <img src="docs/assets/progress/90.svg" width="80" alt="90%"> | Containers appear within a second in **New** (Add or Hide), named from a list of 54 common apps or from [labels](docs/user/docker.md). Other web servers are found by port. |
+| ✅ | **Health checks** | <img src="docs/assets/progress/90.svg" width="80" alt="90%"> | Checked from the server with response time; stopped containers turn red at once. Browser checks in Static mode. |
+| ✅ | **Search** | <img src="docs/assets/progress/100.svg" width="80" alt="100%"> | Instant local results, keyboard first (`/`, arrows, Enter, Esc), web fallback, bangs at the start or end, your own engines |
+| 🚧 | **Tonal and Glass themes** | <img src="docs/assets/progress/70.svg" width="80" alt="70%"> | Two built-in themes, light and dark, with a **Bento** or **Simple** layout. Wallpapers are next. |
 | ⬜ | **Theme import by link** | <img src="docs/assets/progress/0.svg" width="80" alt="0%"> | Paste a CSS link and it applies, checked and cached by the server |
 | ⬜ | **Widgets** | <img src="docs/assets/progress/0.svg" width="80" alt="0%"> | Built-in widgets plus the no-code API widget, with secrets kept server-side |
-| ⬜ | **Visual editor** | <img src="docs/assets/progress/0.svg" width="80" alt="0%"> | Build a complete dashboard without opening a text editor |
-| ⬜ | **Tailscale integration** | <img src="docs/assets/progress/0.svg" width="80" alt="0%"> | Smart links and the devices panel |
+| 🚧 | **Visual editor** | <img src="docs/assets/progress/10.svg" width="80" alt="10%"> | Settings panel for theme, colors, search and custom CSS. Drag-and-drop layout comes later. |
+| 🚧 | **Tailscale integration** | <img src="docs/assets/progress/50.svg" width="80" alt="50%"> | Smart links work (LAN, Tailscale or public URL, picked by how you opened the page). Devices panel is next. |
 | ⬜ | **Login and public view** | <img src="docs/assets/progress/0.svg" width="80" alt="0%"> | Safe to expose on a domain, with guests seeing only what is marked public |
-| ⬜ | **Packages** | <img src="docs/assets/progress/0.svg" width="80" alt="0%"> | Docker image, `.deb`, `.rpm`, plain binary and a one-line install script |
+| 🚧 | **Packages** | <img src="docs/assets/progress/50.svg" width="80" alt="50%"> | 10 MB non-root Docker image, compose file with a socket proxy, hardened systemd service and install script. `.deb`/`.rpm` and published releases come later. |
 
 ✅ done · 🚧 in progress · ⬜ not started
 
@@ -147,21 +148,30 @@ Both modes read the same `haepage.json`. To move from Static to Server mode, dro
 ## Installation
 
 > [!NOTE]
-> None of these exist yet. They show the planned install paths, so you can tell us early if something does not fit your setup.
+> The first release isn't published yet. Until it is, build from source (below). The other options work as soon as a release exists.
 
-**Docker Compose** (planned). Docker access goes through a filtered, read-only socket proxy by default, so Haepage can never send write calls to Docker unless you allow it.
+**Docker Compose**: Haepage plus a read-only socket proxy, so it can see your containers but never change them. See the [install guide](docs/user/install.md#option-1-docker-compose).
 
-**One-line install** (planned) for Debian, Ubuntu and other systemd Linux on amd64, arm64 and armv7. It installs a static binary and a hardened systemd service.
+```sh
+curl -fsSLO https://raw.githubusercontent.com/haelahpx/haepage/main/packaging/docker/compose.yaml
+docker compose up -d
+```
 
-**Static mode** (planned): unzip the static bundle onto any web server and edit `haepage.json`.
+**One-line install** for Debian, Ubuntu, Fedora and other systemd Linux (amd64, arm64, armv7). It verifies the download, creates an unprivileged user, and installs a sandboxed service:
 
-**Build from source** (works today, needs Go, Node.js 22+ and `make`; it serves a placeholder page for now):
+```sh
+curl -fsSL https://raw.githubusercontent.com/haelahpx/haepage/main/packaging/install.sh | sudo sh
+```
+
+**Static mode**: no server program at all. Copy the files onto any web server. See the [Static mode guide](docs/user/static-mode.md).
+
+**From source** (Go, Node.js 22+ and `make`):
 
 ```sh
 git clone https://github.com/haelahpx/haepage
 cd haepage
-make build      # builds the frontend, then the Go binary with it embedded
-./haepage       # http://localhost:8080
+make build                 # or: make static, for the Static mode bundle
+./haepage --data ./data    # http://localhost:8080
 ```
 
 ## Configuration
@@ -171,7 +181,7 @@ Everything you choose lives in one JSON file. Detected services are never writte
 ```jsonc
 {
   "version": 1,
-  "settings": { "title": "Home", "theme": "android", "fx": "auto", "search": "duckduckgo" },
+  "settings": { "title": "Home", "theme": "tonal", "fx": "auto", "search": "duckduckgo" },
   "groups": [{ "id": "media", "name": "Media", "order": 1 }],
   "services": [{
     "id": "media-server", "name": "Media Server", "group": "media", "icon": "media",
@@ -188,7 +198,7 @@ Everything you choose lives in one JSON file. Detected services are never writte
 
 See [`haepage.example.json`](haepage.example.json) for the full shape. A JSON Schema will be published with each release, so editors can autocomplete and validate the file.
 
-**Docker labels** (planned) let you set things from your compose files:
+**Docker labels** let you set things from your compose files ([all labels](docs/user/docker.md)):
 
 ```yaml
 labels:
@@ -221,9 +231,9 @@ The two built-in themes live in [`themes/`](themes/).
 | Milestone | Goal |
 | --- | --- |
 | **M0 Foundations** | Go module, CI, size budgets, benchmark harness, theme API v1, known-apps list |
-| **M1 Static mode** | Services, groups, search and the Android theme from a plain folder |
+| **M1 Static mode** | Services, groups, search and the built-in themes from a plain folder |
 | **M2 Server mode** | Go binary with Docker discovery, health checks, live updates, packages |
-| **M3 Themes** | Android and Apple themes at all tiers, import by link, wallpapers, PWA, Tailscale |
+| **M3 Themes** | Tonal and Glass at all tiers, import by link, wallpapers, PWA, Tailscale |
 | **M4 Widgets** | Built-in widgets, no-code API widget, uptime history, metrics |
 | **M5 Visual editor** | Drag and drop, pickers, profiles, bookmark import, backup |
 | **M6 Power features** | Login, roles, OIDC, public view, command palette, alerts, container actions |
@@ -236,7 +246,7 @@ The two built-in themes live in [`themes/`](themes/).
 cmd/haepage/      entry point
 internal/         config, discovery, health, proxy, themes, tailscale, auth, notify
 web/              Preact frontend, embedded into the binary
-themes/           built-in Android and Apple themes
+themes/           built-in Tonal and Glass themes
 widgets/          built-in widgets
 packaging/        Docker, systemd, deb, rpm
 docs/user/        user documentation

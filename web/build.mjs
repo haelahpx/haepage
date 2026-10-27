@@ -50,13 +50,19 @@ async function minifyCss(css) {
   return (await esbuild.transform(css, { loader: "css", minify: true })).code;
 }
 
+// Inlines base.css and the default theme, with separate <style> elements so
+// the app can swap the theme and custom CSS without touching the base.
+// Paths are relative so the page also works from a sub-folder.
 async function page(jsName) {
+  const base = await readFile(join(root, "themes/base.css"), "utf8");
+  const theme = await readFile(join(root, "themes/tonal/style.css"), "utf8");
   const css =
-    (await readFile(join(root, "themes/base.css"), "utf8")) +
-    (await readFile(join(root, "themes/android/style.css"), "utf8"));
+    `<style>${await minifyCss(base)}</style>` +
+    `<style id="hp-theme">${await minifyCss(theme)}</style>` +
+    `<style id="hp-custom"></style>`;
   const html = (await readFile(join(web, "public/index.html"), "utf8"))
-    .replace("<!--hp:css-->", `<style>${await minifyCss(css)}</style>`)
-    .replace("<!--hp:js-->", `<script type="module" src="/assets/${jsName}"></script>`);
+    .replace("<!--hp:css-->", css)
+    .replace("<!--hp:js-->", `<script type="module" src="./assets/${jsName}"></script>`);
   await writeFile(join(dist, "index.html"), html);
 }
 
@@ -69,6 +75,13 @@ async function themes() {
     await writeFile(join(dist, "themes", `${entry.name}.css`), await minifyCss(css));
     await writeFile(join(dist, "themes", `${entry.name}.json`), await readFile(join(dir, "theme.json")));
   }
+}
+
+// Haepage's license and the notices for bundled third-party code ship with
+// every build (the static bundle and the binary both serve web/dist).
+async function notices() {
+  await writeFile(join(dist, "license.txt"), await readFile(join(root, "LICENSE")));
+  await writeFile(join(dist, "third-party-notices.txt"), await readFile(join(root, "THIRD_PARTY_NOTICES.md")));
 }
 
 async function walk(dir) {
@@ -120,4 +133,5 @@ await clean();
 const jsName = await bundle();
 await page(jsName);
 await themes();
+await notices();
 check(await compress(), jsName);

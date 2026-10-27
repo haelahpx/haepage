@@ -1,0 +1,309 @@
+/* Tonal theme. theme-api 1
+   Tonal color containers, a big stacked clock, mixed icon shapes and
+   springy, shape-changing presses. */
+
+:root {
+  --haepage-theme: "tonal";
+  --accent: #6750a4;
+  --on-accent: #ffffff;
+  --primary-container: #eaddff;
+  --on-primary-container: #4f378b;
+  --tertiary-container: #ffd8e4;
+  --on-tertiary-container: #633b48;
+  --bg: #fef7ff;
+  --surface: #f3edf7;
+  --surface-variant: #e6e0e9;
+  --surface-low: #ffffff;
+  --on-surface: #1d1b20;
+  --on-surface-muted: #49454f;
+  --border: transparent;
+  --radius: 20px;
+  --radius-sm: 14px;
+  --tile-radius: 32px;
+  --tile-pad: 22px;
+  --icon-radius: 50%;
+  --shadow: none;
+  --tile-shadow: none;
+  --status-up: #2e8b57;
+  --status-down: #ba1a1a;
+  --status-unknown: #79747e;
+  --ring-track: rgba(99, 59, 72, 0.18);
+  --avatar-bg-l: 87%;
+  --avatar-bg-s: 72%;
+  --avatar-fg-l: 27%;
+  --font: "Roboto Flex", Roboto, system-ui, sans-serif;
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Hero art: rounded shapes in tonal colors, painted once. */
+  --hero-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 260'%3E%3Cpath d='M563.0 176.0 L562.4 179.7 L560.6 183.2 L558.0 186.5 L554.8 189.5 L551.5 192.3 L548.5 194.9 L546.2 197.5 L544.7 200.3 L544.1 203.4 L544.2 206.9 L544.8 210.8 L545.5 215.0 L546.1 219.4 L546.0 223.6 L545.0 227.4 L543.1 230.6 L540.3 233.1 L536.7 234.7 L532.5 235.5 L528.1 235.8 L523.8 235.8 L519.9 235.8 L516.4 236.3 L513.5 237.5 L511.0 239.4 L508.9 242.2 L506.8 245.6 L504.7 249.3 L502.3 253.0 L499.5 256.1 L496.3 258.5 L492.8 259.7 L489.0 259.8 L485.2 258.6 L481.5 256.6 L478.0 254.0 L474.7 251.2 L471.6 248.8 L468.7 246.9 L465.7 245.9 L462.5 245.8 L459.1 246.5 L455.4 247.8 L451.3 249.3 L447.1 250.5 L442.9 251.2 L439.0 250.9 L435.5 249.6 L432.6 247.3 L430.4 244.0 L428.9 240.0 L427.9 235.8 L427.1 231.5 L426.4 227.6 L425.3 224.3 L423.6 221.6 L421.3 219.5 L418.2 217.9 L414.5 216.5 L410.5 215.0 L406.4 213.3 L402.8 211.1 L399.9 208.3 L398.1 205.1 L397.4 201.4 L397.9 197.5 L399.2 193.5 L401.2 189.5 L403.3 185.8 L405.2 182.4 L406.6 179.1 L407.0 176.0 L406.6 172.9 L405.2 169.6 L403.3 166.2 L401.2 162.5 L399.2 158.5 L397.9 154.5 L397.4 150.6 L398.1 146.9 L399.9 143.7 L402.8 140.9 L406.4 138.7 L410.5 137.0 L414.5 135.5 L418.2 134.1 L421.3 132.5 L423.6 130.4 L425.3 127.7 L426.4 124.4 L427.1 120.5 L427.9 116.2 L428.9 112.0 L430.4 108.0 L432.6 104.7 L435.5 102.4 L439.0 101.1 L442.9 100.8 L447.1 101.5 L451.3 102.7 L455.4 104.2 L459.1 105.5 L462.5 106.2 L465.7 106.1 L468.7 105.1 L471.6 103.2 L474.7 100.8 L478.0 98.0 L481.5 95.4 L485.2 93.4 L489.0 92.2 L492.8 92.3 L496.3 93.5 L499.5 95.9 L502.3 99.0 L504.7 102.7 L506.8 106.4 L508.9 109.8 L511.0 112.6 L513.5 114.5 L516.4 115.7 L519.9 116.2 L523.8 116.2 L528.1 116.2 L532.5 116.5 L536.7 117.3 L540.3 118.9 L543.1 121.4 L545.0 124.6 L546.0 128.4 L546.1 132.6 L545.5 137.0 L544.8 141.2 L544.2 145.1 L544.1 148.6 L544.7 151.7 L546.2 154.5 L548.5 157.1 L551.5 159.7 L554.8 162.5 L558.0 165.5 L560.6 168.8 L562.4 172.3Z' fill='%23d0bcff'/%3E%3Crect x='500' y='212' width='170' height='66' rx='33' transform='rotate(-32 585 245)' fill='%23ffd8e4'/%3E%3Ccircle cx='352' cy='224' r='38' fill='%23bba6f2'/%3E%3Cg fill='%23e8def8'%3E%3Ccircle cx='580' cy='96' r='18'/%3E%3Ccircle cx='612' cy='96' r='18'/%3E%3Ccircle cx='580' cy='128' r='18'/%3E%3Ccircle cx='612' cy='128' r='18'/%3E%3Crect x='580' y='96' width='32' height='32'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+:root[data-scheme="dark"] {
+  --accent: #d0bcff;
+  --on-accent: #381e72;
+  --primary-container: #4f378b;
+  --on-primary-container: #eaddff;
+  --tertiary-container: #633b48;
+  --on-tertiary-container: #ffd8e4;
+  --bg: #141218;
+  --surface: #211f26;
+  --surface-variant: #36343b;
+  --surface-low: #2b2930;
+  --on-surface: #e6e0e9;
+  --on-surface-muted: #cac4d0;
+  --status-up: #6dd58c;
+  --status-down: #ffb4ab;
+  --status-unknown: #938f99;
+  --ring-track: rgba(255, 216, 228, 0.18);
+  --avatar-bg-l: 30%;
+  --avatar-bg-s: 38%;
+  --avatar-fg-l: 88%;
+  --hero-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 260'%3E%3Cpath d='M563.0 176.0 L562.4 179.7 L560.6 183.2 L558.0 186.5 L554.8 189.5 L551.5 192.3 L548.5 194.9 L546.2 197.5 L544.7 200.3 L544.1 203.4 L544.2 206.9 L544.8 210.8 L545.5 215.0 L546.1 219.4 L546.0 223.6 L545.0 227.4 L543.1 230.6 L540.3 233.1 L536.7 234.7 L532.5 235.5 L528.1 235.8 L523.8 235.8 L519.9 235.8 L516.4 236.3 L513.5 237.5 L511.0 239.4 L508.9 242.2 L506.8 245.6 L504.7 249.3 L502.3 253.0 L499.5 256.1 L496.3 258.5 L492.8 259.7 L489.0 259.8 L485.2 258.6 L481.5 256.6 L478.0 254.0 L474.7 251.2 L471.6 248.8 L468.7 246.9 L465.7 245.9 L462.5 245.8 L459.1 246.5 L455.4 247.8 L451.3 249.3 L447.1 250.5 L442.9 251.2 L439.0 250.9 L435.5 249.6 L432.6 247.3 L430.4 244.0 L428.9 240.0 L427.9 235.8 L427.1 231.5 L426.4 227.6 L425.3 224.3 L423.6 221.6 L421.3 219.5 L418.2 217.9 L414.5 216.5 L410.5 215.0 L406.4 213.3 L402.8 211.1 L399.9 208.3 L398.1 205.1 L397.4 201.4 L397.9 197.5 L399.2 193.5 L401.2 189.5 L403.3 185.8 L405.2 182.4 L406.6 179.1 L407.0 176.0 L406.6 172.9 L405.2 169.6 L403.3 166.2 L401.2 162.5 L399.2 158.5 L397.9 154.5 L397.4 150.6 L398.1 146.9 L399.9 143.7 L402.8 140.9 L406.4 138.7 L410.5 137.0 L414.5 135.5 L418.2 134.1 L421.3 132.5 L423.6 130.4 L425.3 127.7 L426.4 124.4 L427.1 120.5 L427.9 116.2 L428.9 112.0 L430.4 108.0 L432.6 104.7 L435.5 102.4 L439.0 101.1 L442.9 100.8 L447.1 101.5 L451.3 102.7 L455.4 104.2 L459.1 105.5 L462.5 106.2 L465.7 106.1 L468.7 105.1 L471.6 103.2 L474.7 100.8 L478.0 98.0 L481.5 95.4 L485.2 93.4 L489.0 92.2 L492.8 92.3 L496.3 93.5 L499.5 95.9 L502.3 99.0 L504.7 102.7 L506.8 106.4 L508.9 109.8 L511.0 112.6 L513.5 114.5 L516.4 115.7 L519.9 116.2 L523.8 116.2 L528.1 116.2 L532.5 116.5 L536.7 117.3 L540.3 118.9 L543.1 121.4 L545.0 124.6 L546.0 128.4 L546.1 132.6 L545.5 137.0 L544.8 141.2 L544.2 145.1 L544.1 148.6 L544.7 151.7 L546.2 154.5 L548.5 157.1 L551.5 159.7 L554.8 162.5 L558.0 165.5 L560.6 168.8 L562.4 172.3Z' fill='%236750a4'/%3E%3Crect x='500' y='212' width='170' height='66' rx='33' transform='rotate(-32 585 245)' fill='%237d5260'/%3E%3Ccircle cx='352' cy='224' r='38' fill='%235d4699'/%3E%3Cg fill='%235a4c86'%3E%3Ccircle cx='580' cy='96' r='18'/%3E%3Ccircle cx='612' cy='96' r='18'/%3E%3Ccircle cx='580' cy='128' r='18'/%3E%3Ccircle cx='612' cy='128' r='18'/%3E%3Crect x='580' y='96' width='32' height='32'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Tonal icons in mixed expressive shapes. */
+.hp-avatar {
+  background: hsl(var(--avatar-hue) var(--avatar-bg-s) var(--avatar-bg-l));
+  color: hsl(var(--avatar-hue) 55% var(--avatar-fg-l));
+  font-weight: 600;
+}
+
+.hp-card:nth-child(3n + 2) .hp-card-icon {
+  border-radius: 32%;
+}
+
+.hp-card:nth-child(3n) .hp-card-icon {
+  border-radius: 50% 50% 22% 22%;
+}
+
+/* Cards: tonal, no shadows, springy press that rounds the corners. */
+.hp-card {
+  border-radius: var(--radius);
+  transition:
+    transform calc(320ms * var(--motion)) var(--spring),
+    border-radius calc(320ms * var(--motion)) var(--spring),
+    background-color calc(200ms * var(--motion)) var(--ease);
+}
+
+.hp-card:hover {
+  transform: none;
+  background: var(--surface-variant);
+}
+
+.hp-card:active {
+  transform: scale(0.97);
+  border-radius: 30px;
+}
+
+.hp-bento .hp-card {
+  background: var(--surface-low);
+  border-radius: 18px;
+}
+
+.hp-bento .hp-card:hover {
+  background: var(--surface-variant);
+}
+
+.hp-bento .hp-card:active {
+  border-radius: 28px;
+}
+
+.hp-group-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--on-surface);
+}
+
+.hp-group-icon {
+  border-radius: 32%;
+  background: hsl(var(--avatar-hue) var(--avatar-bg-s) var(--avatar-bg-l));
+  color: hsl(var(--avatar-hue) 55% var(--avatar-fg-l));
+}
+
+.hp-tile--hero .hp-hero-home {
+  color: inherit;
+}
+
+/* Hero: primary container with a big two-tone clock. */
+.hp-tile--hero {
+  overflow: hidden;
+  color: var(--on-primary-container);
+  background:
+    linear-gradient(90deg, var(--primary-container) 45%, transparent 80%),
+    var(--hero-art) right bottom / auto 100% no-repeat,
+    var(--primary-container);
+}
+
+/* On phones the hero has no free corner, so the shapes are left out. */
+@media (max-width: 640px) {
+  .hp-tile--hero {
+    background: var(--primary-container);
+  }
+}
+
+.hp-hero-clock .hp-clock-time {
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.hp-hero-clock .hp-clock-sep {
+  opacity: 0.5;
+}
+
+.hp-hero-clock .hp-clock-m {
+  color: var(--accent);
+}
+
+:root[data-scheme="dark"] .hp-hero-clock .hp-clock-m {
+  color: #ffd8e4;
+}
+
+.hp-hero-clock .hp-clock-ampm {
+  letter-spacing: 0.05em;
+}
+
+.hp-tile--hero .hp-clock-date {
+  color: inherit;
+  opacity: 0.8;
+}
+
+.hp-greeting {
+  font-weight: 500;
+}
+
+.hp-tile--hero .hp-icon-button:hover {
+  background: color-mix(in srgb, var(--on-primary-container) 12%, transparent);
+}
+
+/* Status: tertiary container. */
+.hp-tile--status {
+  background: var(--tertiary-container);
+  color: var(--on-tertiary-container);
+}
+
+/* Wavy progress: the up portion is a wave, down and
+   unchecked portions are flat tracks, separated by small gaps. */
+.hp-meter-bar {
+  align-items: center;
+  height: 12px;
+}
+
+.hp-meter-bar > span {
+  height: 5px;
+}
+
+.hp-meter-up {
+  height: 12px !important;
+  border-radius: 0;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 12'%3E%3Cpath d='M0 6 Q5 1 10 6 T20 6' fill='none' stroke='black' stroke-width='3.4' stroke-linecap='round'/%3E%3C/svg%3E") repeat-x left center / 20px 12px;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 12'%3E%3Cpath d='M0 6 Q5 1 10 6 T20 6' fill='none' stroke='black' stroke-width='3.4' stroke-linecap='round'/%3E%3C/svg%3E") repeat-x left center / 20px 12px;
+}
+
+.hp-meter-rest {
+  background: color-mix(in srgb, var(--on-tertiary-container) 18%, transparent);
+}
+
+.hp-status-big span {
+  color: inherit;
+  opacity: 0.75;
+}
+
+.hp-down-list li {
+  background: var(--on-tertiary-container);
+  color: var(--tertiary-container);
+}
+
+/* Server tile: thick tonal bars. */
+.hp-tile--system {
+  --ring-track: var(--surface-variant);
+}
+
+.hp-bar {
+  position: relative;
+  height: 8px;
+  overflow: visible;
+  background: none;
+}
+
+.hp-bar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--ring-track);
+}
+
+.hp-bar-fill {
+  position: relative;
+  z-index: 1;
+  background: hsl(var(--avatar-hue) 55% 52%);
+}
+
+:root[data-scheme="dark"] .hp-bar-fill {
+  background: hsl(var(--avatar-hue) 60% 72%);
+}
+
+/* Search bar: tall pill, no border. */
+.hp-search-input {
+  min-height: 56px;
+  border: 0;
+  background: var(--surface);
+  box-shadow: none;
+}
+
+.hp-tile--hero .hp-search-input {
+  background: var(--bg);
+}
+
+.hp-search-results {
+  border: 0;
+  border-radius: 28px;
+  background: var(--surface);
+  box-shadow:
+    0 4px 8px 3px rgba(0, 0, 0, 0.15),
+    0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.hp-result {
+  border-radius: 20px;
+}
+
+.hp-result--active {
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+}
+
+/* Buttons change shape when pressed. */
+.hp-button {
+  transition: border-radius calc(300ms * var(--motion)) var(--spring);
+}
+
+.hp-button:active {
+  border-radius: 10px;
+}
+
+.hp-button--quiet {
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+}
+
+.hp-banner {
+  background: var(--surface);
+}
+
+.hp-drawer {
+  background: var(--surface);
+  border-radius: 28px 0 0 28px;
+}
+
+.hp-field input,
+.hp-field select,
+.hp-field textarea {
+  border: 0;
+  background: var(--surface-variant);
+  border-radius: 14px;
+}

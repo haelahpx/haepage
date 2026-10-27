@@ -27,8 +27,11 @@ archives:
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
     files:
       - LICENSE
+      - THIRD_PARTY_NOTICES.md
       - README.md
       - haepage.example.json
+      - packaging/systemd/haepage.service
+      - packaging/systemd/haepage.sysusers
 
 checksum:
   name_template: checksums.txt

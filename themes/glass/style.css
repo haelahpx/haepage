@@ -1,0 +1,344 @@
+/* Glass theme. theme-api 1
+   Light: near-white tiles with soft depth. Dark: translucent glass on navy.
+   Depth comes from fills, hairlines and shadows, not live blur; blur is
+   used only on overlays and turned off on the lite tier. */
+
+:root {
+  --haepage-theme: "glass";
+  --accent: #007aff;
+  --on-accent: #ffffff;
+  --bg: #f2f3f7;
+  --bg-image: radial-gradient(1100px 700px at 50% -20%, rgba(0, 122, 255, 0.06), transparent 70%);
+  --surface: rgba(255, 255, 255, 0.86);
+  --surface-variant: rgba(118, 118, 128, 0.08);
+  --surface-low: transparent;
+  --fill: rgba(118, 118, 128, 0.1);
+  --separator: rgba(60, 60, 67, 0.09);
+  --on-surface: #1c1c1e;
+  --on-surface-muted: #8a8a8e;
+  --border: rgba(255, 255, 255, 0.9);
+  --sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0) 40%);
+  --overlay: rgba(250, 250, 252, 0.82);
+  --radius: 16px;
+  --radius-sm: 12px;
+  --tile-radius: 26px;
+  --icon-radius: 10px;
+  --shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 6px 18px rgba(15, 23, 42, 0.05);
+  --tile-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 32px rgba(15, 23, 42, 0.06);
+  --blur: 28px;
+  --status-up: #34c759;
+  --status-down: #ff3b30;
+  --status-unknown: #aeaeb2;
+  --ring-track: rgba(118, 118, 128, 0.14);
+  --font: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+
+  /* Hero art: a soft sky and layered hills, painted once. */
+  --hero-base: #ffffff;
+  --hero-sky: linear-gradient(180deg, #fbe7da 0%, #e9eef8 55%, #dfe7f3 100%);
+  --hero-hills: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 220'%3E%3Cpath d='M0 150 70 110 130 132 220 62 300 118 360 92 430 124 520 70 600 104V220H0Z' fill='%23d6deec'/%3E%3Cpath d='M0 186 90 140 170 168 260 122 350 164 440 128 520 156 600 136V220H0Z' fill='%23b5c3d8'/%3E%3Cpath d='M0 208 120 178 230 198 330 172 450 196 540 180 600 190V220H0Z' fill='%2394a7c2'/%3E%3C/svg%3E");
+}
+
+:root[data-scheme="dark"] {
+  --accent: #0a84ff;
+  --bg: #121725;
+  --bg-image:
+    radial-gradient(900px 640px at 8% -12%, rgba(10, 132, 255, 0.18), transparent 70%),
+    radial-gradient(820px 620px at 108% 108%, rgba(94, 92, 230, 0.16), transparent 70%);
+  --surface: rgba(255, 255, 255, 0.06);
+  --surface-variant: rgba(255, 255, 255, 0.08);
+  --fill: rgba(0, 0, 0, 0.3);
+  --separator: rgba(255, 255, 255, 0.07);
+  --on-surface: #f3f5fa;
+  --on-surface-muted: rgba(235, 240, 255, 0.5);
+  --border: rgba(255, 255, 255, 0.07);
+  --sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0) 40%);
+  --overlay: rgba(28, 33, 48, 0.84);
+  --shadow: 0 10px 26px rgba(0, 0, 0, 0.3);
+  --tile-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 0 rgba(0, 0, 0, 0.25), 0 20px 44px rgba(0, 0, 0, 0.34);
+  --status-up: #30d158;
+  --status-down: #ff453a;
+  --ring-track: rgba(255, 255, 255, 0.1);
+  --hero-base: #1a2031;
+  --hero-sky: linear-gradient(180deg, #1c2745 0%, #273457 60%, #2c3a5e 100%);
+  --hero-hills: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 220'%3E%3Cpath d='M0 150 70 110 130 132 220 62 300 118 360 92 430 124 520 70 600 104V220H0Z' fill='%23324063'/%3E%3Cpath d='M0 186 90 140 170 168 260 122 350 164 440 128 520 156 600 136V220H0Z' fill='%23283452'/%3E%3Cpath d='M0 208 120 178 230 198 330 172 450 196 540 180 600 190V220H0Z' fill='%231f2841'/%3E%3C/svg%3E");
+}
+
+/* Surfaces */
+
+.hp-tile,
+.hp-card,
+.hp-banner {
+  background: var(--sheen), var(--surface);
+}
+
+.hp-card {
+  box-shadow: var(--shadow);
+}
+
+/* Icons: rounded squares with a lit top edge. */
+.hp-avatar,
+.hp-group-icon {
+  background: linear-gradient(160deg, hsl(var(--avatar-hue) 85% 63%), hsl(var(--avatar-hue) 75% 47%));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  color: #fff;
+  font-weight: 700;
+}
+
+.hp-group-icon {
+  border-radius: 12px;
+}
+
+.hp-status--up {
+  box-shadow: 0 0 6px var(--status-up);
+}
+
+.hp-status--down {
+  box-shadow: 0 0 6px var(--status-down);
+}
+
+/* Simple layout: small uppercase section headers. */
+.hp-group-title {
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Bento: hero */
+
+.hp-tile--hero {
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, var(--hero-base) 36%, transparent 72%),
+    var(--hero-hills) right bottom / auto 80% no-repeat,
+    var(--hero-sky) right / 64% 100% no-repeat,
+    var(--hero-base);
+}
+
+.hp-hero-clock .hp-clock-time {
+  letter-spacing: -0.045em;
+}
+
+.hp-hero-clock .hp-clock-ampm {
+  letter-spacing: -0.01em;
+  opacity: 0.85;
+}
+
+.hp-greeting {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Bento: status */
+
+.hp-tile--status[data-state="down"] {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--status-down) 10%, transparent), transparent 70%),
+    var(--sheen),
+    var(--surface);
+}
+
+/* One capsule per service, like a battery or activity widget. */
+.hp-meter-segments {
+  display: flex;
+}
+
+.hp-meter-bar {
+  display: none;
+}
+
+.hp-seg {
+  height: 12px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.hp-seg--unknown {
+  background: var(--ring-track);
+  box-shadow: none;
+}
+
+.hp-tile--status[data-state="down"] .hp-status-headline {
+  color: var(--status-down);
+}
+
+.hp-down-list li {
+  background: color-mix(in srgb, var(--status-down) 12%, transparent);
+}
+
+/* Server tile: glossy bars in each metric's color. */
+.hp-bar {
+  height: 7px;
+}
+
+.hp-bar-fill {
+  background: linear-gradient(90deg, hsl(var(--avatar-hue) 88% 64%), hsl(var(--avatar-hue) 78% 48%));
+}
+
+.hp-system-foot {
+  border-top-color: var(--separator);
+}
+
+/* Bento: groups as lists with separators */
+
+.hp-bento .hp-group-title {
+  margin: 0 0 6px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--separator);
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+  text-transform: none;
+}
+
+.hp-bento .hp-grid {
+  gap: 0 12px;
+}
+
+.hp-bento .hp-card {
+  padding: 12px 8px;
+  border: 0;
+  border-bottom: 1px solid var(--separator);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.hp-bento .hp-card:last-child {
+  border-bottom: 0;
+}
+
+.hp-bento .hp-card:hover {
+  border-radius: 12px;
+  border-bottom-color: transparent;
+  background: var(--surface-variant);
+}
+
+.hp-bento .hp-card-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+}
+
+.hp-bento .hp-card-chevron,
+.hp-bento .hp-status-label {
+  display: block;
+}
+
+.hp-bento .hp-group {
+  container-type: inline-size;
+}
+
+.hp-bento .hp-card {
+  gap: 10px;
+}
+
+.hp-bento .hp-status + .hp-status-label {
+  margin-left: -4px;
+}
+
+/* In narrow tiles the chevron gives its room to the service name. */
+@container (max-width: 320px) {
+  .hp-bento .hp-card-chevron {
+    display: none;
+  }
+  .hp-bento .hp-card-title {
+    font-size: 0.95rem;
+  }
+}
+
+/* Search: a recessed capsule. */
+
+.hp-search-input {
+  border-color: transparent;
+  background: var(--fill);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.hp-tile--hero .hp-search-input {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  font-size: 0.95rem;
+  background: color-mix(in srgb, var(--hero-base) 82%, transparent);
+  border: 1px solid var(--separator);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+:root[data-scheme="dark"] .hp-search-input {
+  box-shadow:
+    inset 0 1px 3px rgba(0, 0, 0, 0.35),
+    0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.hp-search-kbd {
+  background: var(--surface-variant);
+}
+
+.hp-search-results,
+.hp-drawer {
+  background: var(--overlay);
+  border: 1px solid var(--border);
+}
+
+:root:not([data-fx="lite"]) .hp-search-results,
+:root:not([data-fx="lite"]) .hp-drawer {
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(1.8);
+  backdrop-filter: blur(var(--blur)) saturate(1.8);
+}
+
+:root[data-fx="balanced"] {
+  --blur: 16px;
+}
+
+.hp-search-results {
+  border-radius: 18px;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.16);
+}
+
+.hp-result {
+  border-radius: 11px;
+}
+
+/* Buttons */
+
+.hp-button {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0) 55%), var(--accent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.hp-button--quiet {
+  background: var(--fill);
+  color: var(--on-surface);
+  box-shadow: none;
+}
+
+.hp-icon-button:hover {
+  background: var(--fill);
+}
+
+.hp-drawer {
+  border-radius: 26px 0 0 26px;
+}
+
+.hp-field input,
+.hp-field select,
+.hp-field textarea {
+  border-color: transparent;
+  background: var(--fill);
+}
+
+/* Lite: flat background, no glow. */
+:root[data-fx="lite"] {
+  --bg-image: none;
+}
+
+:root[data-fx="lite"] .hp-status {
+  box-shadow: none;
+}
+
+/* Inbox rows keep the list separators. */
+.hp-bento .hp-inbox-item .hp-card {
+  border-bottom: 0;
+}
+
+.hp-bento .hp-inbox-item:not(:last-child) {
+  border-bottom: 1px solid var(--separator);
+}

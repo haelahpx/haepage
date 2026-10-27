@@ -1,16 +1,51 @@
 [Unit]
-Description=Haepage - Homelab Homepage Service
-After=network.target
+Description=Haepage homelab homepage
+Documentation=https://github.com/haelahpx/haepage
+After=network-online.target docker.service
+Wants=network-online.target
 
 [Service]
 Type=simple
 User=haepage
 Group=haepage
-WorkingDirectory=/var/lib/haepage
+Environment=HAEPAGE_DATA=/var/lib/haepage
+Environment=HAEPAGE_ADDR=:8080
+# Settings can also go in /etc/haepage/env (HAEPAGE_ADDR, DOCKER_HOST, ...).
+EnvironmentFile=-/etc/haepage/env
 ExecStart=/usr/local/bin/haepage
-Restart=always
+Restart=on-failure
 RestartSec=5
-LimitNOFILE=65535
+
+# Data lives in /var/lib/haepage; everything else is read-only.
+StateDirectory=haepage
+StateDirectoryMode=0750
+UMask=0077
+
+# Sandboxing
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+ProtectProc=default
+RestrictSUIDSGID=yes
+RestrictRealtime=yes
+RestrictNamespaces=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+RemoveIPC=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged @resources
+CapabilityBoundingSet=
+AmbientCapabilities=
 
 [Install]
 WantedBy=multi-user.target

@@ -6,29 +6,38 @@
   --accent: #3b82f6;
   --on-accent: #ffffff;
   --bg: #f5f5f7;
+  --bg-image: none;
   --surface: #ffffff;
   --surface-variant: #ebebef;
+  --surface-low: #f8f8fa;
   --on-surface: #1c1c1e;
   --on-surface-muted: #6b6b73;
   --border: rgba(0, 0, 0, 0.1);
   --radius: 16px;
   --radius-sm: 10px;
+  --tile-radius: 24px;
+  --icon-radius: 10px;
   --gap: 16px;
   --card-pad: 14px;
+  --tile-pad: 20px;
   --card-min: 220px;
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  --tile-shadow: var(--shadow);
   --blur: 0px;
-  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
-  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", monospace;
+  --font: system-ui, -apple-system, Roboto, "Noto Sans", sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", "Roboto Mono", monospace;
   --status-up: #22c55e;
   --status-down: #ef4444;
   --status-unknown: #9ca3af;
+  --ring-track: var(--surface-variant);
   --motion: 1;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
 }
 
 :root[data-fx="lite"] {
   --blur: 0px;
   --shadow: none;
+  --tile-shadow: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -51,24 +60,34 @@ body {
 
 body {
   background: var(--bg);
-  background-image: var(--wallpaper, none);
-  background-size: cover;
-  background-attachment: fixed;
   color: var(--on-surface);
   font-family: var(--font);
   line-height: 1.4;
   -webkit-font-smoothing: antialiased;
 }
 
-.hp-app {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: clamp(16px, 4vw, 48px);
+/* The page background image sits on its own fixed layer, which scrolls
+   far more cheaply than background-attachment: fixed. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: var(--bg-image, none);
+  pointer-events: none;
 }
+
+/* Full width on every screen; very wide screens get more bento columns
+   instead of empty side margins. */
+.hp-app {
+  padding: clamp(16px, 3vw, 40px);
+}
+
+/* Header (simple layout) */
 
 .hp-header {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: var(--gap);
   margin-bottom: calc(var(--gap) * 1.5);
@@ -80,14 +99,87 @@ body {
   font-weight: 600;
 }
 
+.hp-header-end {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hp-clock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.2;
+}
+
+.hp-clock-time {
+  display: inline-flex;
+  align-items: baseline;
+  font-size: 1.25rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.hp-clock-ampm {
+  margin-left: 0.3em;
+  font-size: 0.55em;
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+.hp-clock-date {
+  font-size: 0.8rem;
+  color: var(--on-surface-muted);
+}
+
+@media (max-width: 480px) {
+  .hp-header .hp-clock-date {
+    display: none;
+  }
+}
+
+/* Groups and cards */
+
 .hp-group {
   margin-bottom: calc(var(--gap) * 2);
 }
 
 .hp-group-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin: 0 0 var(--gap);
   font-size: 0.95rem;
   font-weight: 600;
+  color: var(--on-surface-muted);
+}
+
+/* Group icon and service count show in the bento layout only. */
+.hp-group-icon,
+.hp-group-sub {
+  display: none;
+}
+
+.hp-group-name {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.hp-group-icon {
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  object-fit: contain;
+  background: hsl(var(--avatar-hue, 220) 60% 50%);
+  color: #fff;
+}
+
+.hp-group-sub {
+  font-size: 0.8rem;
+  font-weight: 400;
   color: var(--on-surface-muted);
 }
 
@@ -101,6 +193,7 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
   padding: var(--card-pad);
   border-radius: var(--radius);
   background: var(--surface);
@@ -109,9 +202,9 @@ body {
   color: inherit;
   text-decoration: none;
   contain: layout paint;
-  content-visibility: auto;
-  contain-intrinsic-size: auto 72px;
-  transition: transform calc(150ms * var(--motion)) ease;
+  transition:
+    transform calc(180ms * var(--motion)) var(--ease),
+    background-color calc(180ms * var(--motion)) var(--ease);
 }
 
 .hp-card:hover {
@@ -123,12 +216,26 @@ body {
   outline-offset: 2px;
 }
 
+.hp-card[aria-disabled="true"] {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .hp-card-icon {
   flex: none;
   width: 40px;
   height: 40px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--icon-radius);
   object-fit: contain;
+}
+
+.hp-avatar {
+  display: grid;
+  place-items: center;
+  background: hsl(var(--avatar-hue, 220) 60% 50%);
+  color: #fff;
+  font-weight: 600;
+  font-size: 1.1rem;
 }
 
 .hp-card-body {
@@ -153,6 +260,13 @@ body {
   color: var(--on-surface-muted);
 }
 
+.hp-card-chevron {
+  display: none;
+  flex: none;
+  color: var(--on-surface-muted);
+  opacity: 0.6;
+}
+
 .hp-status {
   flex: none;
   width: 8px;
@@ -169,6 +283,22 @@ body {
   background: var(--status-down);
 }
 
+/* "Up" / "Down" text next to the dot; themes opt in. */
+.hp-status-label {
+  display: none;
+  flex: none;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.hp-status-label--up {
+  color: var(--status-up);
+}
+
+.hp-status-label--down {
+  color: var(--status-down);
+}
+
 .hp-badge {
   padding: 2px 8px;
   border-radius: 999px;
@@ -183,4 +313,693 @@ body {
 
 .hp-empty {
   color: var(--on-surface-muted);
+}
+
+.hp-empty p {
+  margin: 0 0 6px;
+}
+
+/* Bento layout */
+
+.hp-bento {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-flow: row dense;
+  gap: var(--gap);
+}
+
+.hp-tile {
+  position: relative;
+  min-width: 0;
+  margin: 0;
+  padding: var(--tile-pad);
+  border-radius: var(--tile-radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--tile-shadow);
+}
+
+.hp-tile--wide {
+  grid-column: span 2;
+}
+
+/* Hero: title and date top left, then the clock and greeting; search and
+   settings top right. */
+.hp-tile--hero {
+  grid-column: span 3;
+  z-index: 3; /* keeps the search results above the tiles below */
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "eyebrow  search actions"
+    "clock    .      ."
+    "greeting .      .";
+  /* When the row is taller than the hero's content, the clock and greeting
+     stay together at the bottom. */
+  grid-template-rows: auto 1fr auto;
+  align-items: center;
+  column-gap: 20px;
+  padding: clamp(20px, 3vw, 32px);
+}
+
+.hp-hero-main {
+  display: contents;
+}
+
+.hp-hero-eyebrow {
+  grid-area: eyebrow;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+}
+
+.hp-hero-eyebrow .hp-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.hp-hero-clock {
+  grid-area: clock;
+  align-self: end;
+  margin-top: 14px;
+}
+
+.hp-hero-clock .hp-clock-time {
+  font-size: clamp(3.5rem, 7vw, 5.5rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.hp-hero-clock .hp-clock-ampm {
+  margin-left: 0.3em;
+  font-size: 0.42em;
+}
+
+.hp-greeting {
+  grid-area: greeting;
+  margin: 4px 0 0;
+  font-size: clamp(1.5rem, 2.6vw, 2.1rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.hp-hero-actions {
+  grid-area: actions;
+}
+
+.hp-bento .hp-search {
+  max-width: none;
+  margin: 0;
+}
+
+.hp-tile--hero .hp-search {
+  grid-area: search;
+  justify-self: end;
+  width: min(440px, 100%);
+}
+
+/* Status tile: big count, a meter, and the names of what's down. Themes
+   show either the meter's segments (one per service) or its bar. */
+.hp-tile--status {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hp-status-big {
+  margin: 4px 0 0;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.hp-status-big strong {
+  font-size: 2.6rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.hp-status-big span {
+  margin-left: 2px;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--on-surface-muted);
+}
+
+.hp-meter-segments {
+  display: none;
+  gap: 3px;
+}
+
+.hp-seg {
+  flex: 1;
+  min-width: 2px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--status-unknown);
+}
+
+.hp-seg--up {
+  background: var(--status-up);
+}
+
+.hp-seg--down {
+  background: var(--status-down);
+}
+
+.hp-meter-bar {
+  display: flex;
+  gap: 4px;
+  height: 8px;
+}
+
+.hp-meter-bar > span {
+  flex-basis: 0;
+  min-width: 8px;
+  border-radius: 999px;
+}
+
+.hp-meter-up {
+  background: var(--status-up);
+}
+
+.hp-meter-down {
+  background: var(--status-down);
+}
+
+.hp-meter-rest {
+  background: var(--ring-track);
+}
+
+.hp-status-headline {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.hp-down-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hp-down-list li {
+  max-width: 100%;
+  overflow: hidden;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--status-down) 14%, transparent);
+  color: var(--status-down);
+  font-size: 0.78rem;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Server tile */
+
+.hp-metrics {
+  display: grid;
+  gap: 12px;
+}
+
+.hp-metric {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+
+.hp-metric .hp-group-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+
+.hp-metric .hp-group-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.hp-metric-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.hp-metric-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.hp-metric-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.hp-metric-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.hp-bar {
+  height: 6px;
+  margin: 6px 0 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--ring-track);
+}
+
+.hp-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: hsl(var(--avatar-hue, 211) 75% 52%);
+  transition: width calc(400ms * var(--motion)) var(--ease);
+}
+
+.hp-metric-detail {
+  display: block;
+  overflow: hidden;
+  font-size: 0.78rem;
+  color: var(--on-surface-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hp-system-foot {
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--separator, var(--border));
+  font-size: 0.78rem;
+  color: var(--on-surface-muted);
+}
+
+.hp-bento .hp-group {
+  margin: 0;
+}
+
+.hp-bento .hp-group-title {
+  gap: 12px;
+  margin-bottom: 12px;
+  font-size: 1.05rem;
+  color: var(--on-surface);
+}
+
+.hp-bento .hp-group-icon {
+  display: grid;
+}
+
+.hp-bento .hp-group-sub {
+  display: block;
+}
+
+.hp-bento .hp-grid {
+  grid-template-columns: repeat(auto-fill, minmax(min(210px, 100%), 1fr));
+  gap: 6px;
+}
+
+.hp-bento .hp-card {
+  padding: 10px;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.hp-bento .hp-card:hover {
+  transform: none;
+  background: var(--surface-variant);
+}
+
+/* Wide screens: the first row is always hero + status + server, so groups
+   start on their own row. Without a server tile the hero takes its place. */
+@media (min-width: 1800px) {
+  .hp-bento {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .hp-bento:not(:has(.hp-tile--system)) .hp-tile--hero {
+    grid-column: span 4;
+  }
+}
+
+@media (min-width: 2400px) {
+  .hp-bento {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  .hp-tile--hero {
+    grid-column: span 4;
+  }
+  .hp-bento:not(:has(.hp-tile--system)) .hp-tile--hero {
+    grid-column: span 5;
+  }
+}
+
+@media (max-width: 1100px) {
+  .hp-bento {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .hp-tile--hero {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 640px) {
+  .hp-bento {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .hp-tile--hero,
+  .hp-tile--wide {
+    grid-column: auto;
+  }
+  .hp-tile--hero {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: none;
+    grid-template-areas:
+      "eyebrow actions"
+      "clock clock"
+      "greeting greeting"
+      "search search";
+  }
+  .hp-tile--hero .hp-search {
+    width: 100%;
+    margin-top: 16px;
+  }
+}
+
+/* Controls */
+
+.hp-icon-button,
+.hp-button,
+.hp-link {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.hp-icon-button {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.hp-icon-button:hover {
+  background: var(--surface-variant);
+}
+
+.hp-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.hp-button--quiet {
+  background: var(--surface-variant);
+  color: var(--on-surface);
+}
+
+.hp-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.hp-icon-button:focus-visible,
+.hp-button:focus-visible,
+.hp-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Search */
+
+.hp-search {
+  position: relative;
+  z-index: 2;
+  max-width: 720px;
+  margin: 0 auto calc(var(--gap) * 2);
+}
+
+.hp-search-icon {
+  position: absolute;
+  top: 50%;
+  left: 18px;
+  transform: translateY(-50%);
+  color: var(--on-surface-muted);
+  pointer-events: none;
+}
+
+.hp-search-input {
+  width: 100%;
+  padding: 14px 20px 14px 48px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--on-surface);
+  font: inherit;
+  font-size: 1.05rem;
+  box-shadow: var(--shadow);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.hp-search-input {
+  padding-right: 52px;
+}
+
+/* Shortcut hint; hidden while typing and on touch screens. */
+.hp-search-kbd {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+  padding: 2px 9px;
+  border-radius: 7px;
+  background: var(--surface-variant);
+  color: var(--on-surface-muted);
+  font: 600 0.75rem/1.5 var(--font-mono);
+  pointer-events: none;
+}
+
+.hp-search-input:not(:placeholder-shown) ~ .hp-search-kbd {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .hp-search-kbd {
+    display: none;
+  }
+}
+
+.hp-hero-home {
+  flex: none;
+  align-self: center;
+  color: var(--on-surface-muted);
+}
+
+/* Esc clears the box, so the browser's own clear button is hidden. */
+.hp-search-input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.hp-search-input::placeholder {
+  color: var(--on-surface-muted);
+}
+
+.hp-search-input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.hp-search-results {
+  position: absolute;
+  inset: calc(100% + 6px) 0 auto;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-variant);
+  color: var(--on-surface);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+}
+
+.hp-result {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.hp-result--active {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.hp-result-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hp-result-meta {
+  flex: none;
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+/* Banners */
+
+.hp-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin: 0 0 var(--gap);
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--tile-shadow);
+  font-size: 0.9rem;
+}
+
+.hp-banner--error {
+  background: color-mix(in srgb, var(--status-down) 18%, var(--bg));
+}
+
+.hp-banner-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Settings drawer */
+
+.hp-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.hp-drawer {
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: min(380px, 100%);
+  overflow-y: auto;
+  padding: 20px;
+  background: var(--bg);
+  color: var(--on-surface);
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.2);
+  outline: none;
+}
+
+.hp-drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.hp-drawer-head h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.hp-field {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 14px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.hp-field input,
+.hp-field select,
+.hp-field textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--on-surface);
+  font: inherit;
+  font-weight: 400;
+}
+
+.hp-field textarea {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  resize: vertical;
+}
+
+.hp-drawer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.hp-drawer-note {
+  margin: 14px 0 0;
+  font-size: 0.8rem;
+  color: var(--on-surface-muted);
+}
+
+.hp-error {
+  color: var(--status-down);
+  font-size: 0.9rem;
+}
+
+/* Inbox: newly detected services with Add and Hide buttons */
+
+.hp-inbox-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.hp-inbox-actions {
+  display: flex;
+  gap: 6px;
+  padding: 0 8px 8px 60px;
+}
+
+.hp-inbox-actions .hp-button {
+  padding: 5px 14px;
+  font-size: 0.8rem;
+}
+
+.hp-card .hp-badge {
+  flex: none;
+}
+
+.hp-group--inbox.hp-tile {
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--accent) 40%, transparent),
+    var(--tile-shadow);
 }

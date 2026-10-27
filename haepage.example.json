@@ -2,7 +2,7 @@
   "version": 1,
   "settings": {
     "title": "Home",
-    "theme": "android",
+    "theme": "tonal",
     "fx": "auto",
     "search": "duckduckgo"
   },

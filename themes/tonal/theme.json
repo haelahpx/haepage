@@ -1,0 +1,16 @@
+{
+  "name": "Tonal",
+  "author": "Haepage",
+  "theme-api": 1,
+  "layout": "grid",
+  "accent": "#6750A4",
+  "variants": [
+    "light",
+    "dark"
+  ],
+  "tiers": [
+    "full",
+    "balanced",
+    "lite"
+  ]
+}
