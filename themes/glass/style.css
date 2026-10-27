@@ -342,3 +342,20 @@
 .hp-bento .hp-inbox-item:not(:last-child) {
   border-bottom: 1px solid var(--separator);
 }
+
+/* Integrations */
+.hp-dialog,
+.hp-toast {
+  background: var(--overlay);
+}
+
+:root:not([data-fx="lite"]) .hp-dialog,
+:root:not([data-fx="lite"]) .hp-toast {
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(1.8);
+  backdrop-filter: blur(var(--blur)) saturate(1.8);
+}
+
+.hp-tile--media .hp-media + .hp-media {
+  padding-top: 10px;
+  border-top: 1px solid var(--separator);
+}

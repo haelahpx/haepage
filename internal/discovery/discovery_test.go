@@ -232,7 +232,7 @@ func TestMergeChecks(t *testing.T) {
 	if got[0].CheckURL != "http://{host}:9000/health" || got[0].CheckExpect != 204 || got[0].CheckInterval != 30 {
 		t.Errorf("a = %+v", got[0])
 	}
-	if got[1].CheckType != "none" || got[1].CheckURL != "https://b.example.com" {
+	if got[1].CheckType != "none" || got[1].CheckURL != "https://b.example.com" || !got[1].NoCheck || got[0].NoCheck {
 		t.Errorf("b = %+v", got[1])
 	}
 }

@@ -75,6 +75,7 @@ Share a theme, widget or layout with a single link.
 - **No-code API widget**: point it at any JSON API and pick fields
 - Secrets stay on the server (`{{secrets.name}}`)
 - Sandboxed custom widgets you can share by link
+- **Live media data**: who's watching, new requests, downloads and releases, with instant pop-ups ([guide](docs/user/integrations.md))
 
 </td></tr>
 <tr><td valign="top">
@@ -113,6 +114,7 @@ Estimates of where each part stands. The bars are updated as milestones land.
 | 🚧 | **Tonal and Glass themes** | <img src="docs/assets/progress/70.svg" width="80" alt="70%"> | Two built-in themes, light and dark, with a **Bento** or **Simple** layout. Wallpapers are next. |
 | ⬜ | **Theme import by link** | <img src="docs/assets/progress/0.svg" width="80" alt="0%"> | Paste a CSS link and it applies, checked and cached by the server |
 | ⬜ | **Widgets** | <img src="docs/assets/progress/0.svg" width="80" alt="0%"> | Built-in widgets plus the no-code API widget, with secrets kept server-side |
+| ✅ | **Media app integrations** | <img src="docs/assets/progress/90.svg" width="80" alt="90%"> | Who's watching, new requests, downloads and what's coming up, with pop-ups and webhooks. Keys stay on the server. [Guide](docs/user/integrations.md). |
 | 🚧 | **Visual editor** | <img src="docs/assets/progress/10.svg" width="80" alt="10%"> | Settings panel for theme, colors, search and custom CSS. Drag-and-drop layout comes later. |
 | 🚧 | **Tailscale integration** | <img src="docs/assets/progress/50.svg" width="80" alt="50%"> | Smart links work (LAN, Tailscale or public URL, picked by how you opened the page). Devices panel is next. |
 | ⬜ | **Login and public view** | <img src="docs/assets/progress/0.svg" width="80" alt="0%"> | Safe to expose on a domain, with guests seeing only what is marked public |

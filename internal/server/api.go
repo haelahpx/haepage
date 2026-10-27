@@ -7,9 +7,11 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/haelahpx/haepage/internal/config"
+	"github.com/haelahpx/haepage/internal/integrations"
 	"github.com/haelahpx/haepage/internal/store"
 )
 
@@ -117,7 +119,7 @@ func events(reg *store.Registry) http.HandlerFunc {
 			flusher.Flush()
 			return nil
 		}
-		if send("snapshot", map[string]any{"services": reg.Snapshot()}) != nil {
+		if send("snapshot", reg.State()) != nil {
 			return
 		}
 
@@ -141,5 +143,86 @@ func events(reg *store.Registry) http.HandlerFunc {
 				}
 			}
 		}
+	}
+}
+
+func listIntegrations(m *integrations.Manager) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		list := m.List()
+		if list == nil {
+			list = []integrations.Info{}
+		}
+		writeJSON(w, http.StatusOK, list)
+	}
+}
+
+// connectIntegration tests an API key against the app and saves it.
+func connectIntegration(m *integrations.Manager) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			Service string `json:"service"`
+			Key     string `json:"key"`
+		}
+		if err := json.NewDecoder(io.LimitReader(r.Body, 16<<10)).Decode(&body); err != nil {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "expected {service, key}"})
+			return
+		}
+		err := m.Connect(r.Context(), body.Service, body.Key)
+		switch {
+		case errors.Is(err, integrations.ErrNotFound):
+			writeJSON(w, http.StatusNotFound, map[string]string{"error": err.Error()})
+		case err != nil:
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+		default:
+			writeJSON(w, http.StatusOK, map[string]bool{"connected": true})
+		}
+	}
+}
+
+func disconnectIntegration(m *integrations.Manager) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			Service string `json:"service"`
+		}
+		if err := json.NewDecoder(io.LimitReader(r.Body, 16<<10)).Decode(&body); err != nil || body.Service == "" {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "expected {service}"})
+			return
+		}
+		if err := m.Disconnect(body.Service); err != nil {
+			slog.Error("disconnecting integration", "service", body.Service, "err", err)
+			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "could not disconnect"})
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]bool{"connected": false})
+	}
+}
+
+// integrationImage proxies a poster that the app only serves with its API
+// key. Only images pass, and they are sandboxed: an SVG can carry script.
+func integrationImage(m *integrations.Manager) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		data, ctype, err := m.Image(r.Context(), r.URL.Query().Get("service"), r.URL.Query().Get("item"))
+		if err != nil || !strings.HasPrefix(ctype, "image/") {
+			http.NotFound(w, r)
+			return
+		}
+		h := w.Header()
+		h.Set("Content-Type", ctype)
+		h.Set("Cache-Control", "private, max-age=86400")
+		h.Set("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; sandbox")
+		w.Write(data)
+	}
+}
+
+// webhook receives notifications from connected apps. The random token in
+// the path identifies (and authorizes) the integration.
+func webhook(m *integrations.Manager) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		body, err := io.ReadAll(io.LimitReader(r.Body, 256<<10))
+		if err != nil || !m.Webhook(r.PathValue("token"), body) {
+			http.NotFound(w, r)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
 	}
 }

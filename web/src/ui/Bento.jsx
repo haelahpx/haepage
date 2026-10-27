@@ -173,7 +173,7 @@ function SystemTile({ stats }) {
 
 // Bento layout: hero (clock, greeting, search), status, server stats when
 // the server provides them, then one tile per group.
-export function Bento({ title, sections, services, health, system, search, empty, actions, onSettings }) {
+export function Bento({ title, sections, services, health, chips, system, media, search, empty, actions, onSettings }) {
   return (
     <div class="hp-bento">
       <Hero title={title} onSettings={onSettings}>
@@ -181,8 +181,9 @@ export function Bento({ title, sections, services, health, system, search, empty
       </Hero>
       <StatusTile health={health} services={services} />
       {system.enabled && <SystemTile stats={system.stats} />}
+      {media}
       {sections.length > 0 ? (
-        sections.map((g) => <Group key={g.id} {...g} health={health} actions={actions} tile />)
+        sections.map((g) => <Group key={g.id} {...g} health={health} chips={chips} actions={actions} tile />)
       ) : (
         <section class="hp-tile hp-tile--wide">{empty}</section>
       )}

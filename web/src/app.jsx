@@ -2,8 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "preact/hooks"
 import { emptyConfig } from "./config/defaults.js";
 import { migrate } from "./config/migrate.js";
 import { ConflictError, clearDraft, loadConfig, loadServerConfig, saveDraft, saveServerConfig } from "./config/store.js";
-import { SERVICE_EVENTS, applyEvent, setOverride } from "./events.js";
+import { LIVE_EVENTS, applyLive, setOverride } from "./events.js";
 import { probe, unprobeable } from "./health.js";
+import { chipFor, shouldNotify } from "./integration.js";
 import { arrange } from "./layout.js";
 import { resolveLink } from "./links.js";
 import { detectMode } from "./mode.js";
@@ -13,9 +14,13 @@ import { applyCustomCss, applyTheme } from "./theme/apply.js";
 import { resolveFx, resolveScheme } from "./theme/fx.js";
 import { Bento } from "./ui/Bento.jsx";
 import { Group } from "./ui/Card.jsx";
+import { ConnectDialog } from "./ui/Connect.jsx";
 import { Header } from "./ui/Header.jsx";
+import { MediaTiles } from "./ui/Media.jsx";
 import { Search } from "./ui/Search.jsx";
 import { Settings } from "./ui/Settings.jsx";
+import { Toasts, useToasts } from "./ui/Toasts.jsx";
+import { browserStorage } from "./config/store.js";
 
 const HEALTH_INTERVAL = 60_000;
 const root = document.documentElement;
@@ -145,27 +150,57 @@ function useSystem(enabled) {
   return { enabled, stats };
 }
 
-// Follows the server's event stream. EventSource reconnects on its own,
-// and every connection starts with a full snapshot.
-function useLiveServices(enabled, onConfig) {
-  const [services, setServices] = useState(null);
-  const onConfigRef = useRef(onConfig);
-  onConfigRef.current = onConfig;
+// Follows the server's event stream: services, integration data and
+// activity. EventSource reconnects on its own, and every connection starts
+// with a full snapshot. onActivity sees only new activity, not the snapshot.
+function useLive(enabled, onConfig, onActivity) {
+  const [live, setLive] = useState(null);
+  const handlers = useRef({ onConfig, onActivity });
+  handlers.current = { onConfig, onActivity };
 
   useEffect(() => {
     if (!enabled) return undefined;
     const source = new EventSource("./api/events");
-    for (const type of SERVICE_EVENTS) {
+    for (const type of LIVE_EVENTS) {
       source.addEventListener(type, (e) => {
         const data = JSON.parse(e.data);
-        setServices((list) => applyEvent(list ?? [], type, data));
+        setLive((state) => applyLive(state ?? applyLive(null, "snapshot", {}), type, data));
+        if (type === "activity") handlers.current.onActivity(data);
       });
     }
-    source.addEventListener("config", (e) => onConfigRef.current(JSON.parse(e.data).etag));
+    source.addEventListener("config", (e) => handlers.current.onConfig(JSON.parse(e.data).etag));
     return () => source.close();
   }, [enabled]);
 
-  return services;
+  return live;
+}
+
+const DISMISS_KEY = "haepage:connect-dismissed";
+
+function readDismissed() {
+  try {
+    return JSON.parse(browserStorage()?.getItem(DISMISS_KEY) ?? "[]");
+  } catch {
+    return [];
+  }
+}
+
+// Services with an integration, and whether each is connected.
+function useApps(enabled, signature) {
+  const [apps, setApps] = useState([]);
+  const refresh = useCallback(async () => {
+    if (!enabled) return;
+    try {
+      const res = await fetch("./api/integrations", { cache: "no-store" });
+      if (res.ok) setApps(await res.json());
+    } catch {
+      // Try again on the next change.
+    }
+  }, [enabled]);
+  useEffect(() => {
+    refresh();
+  }, [refresh, signature]);
+  return [apps, refresh];
 }
 
 const SAVE_DELAY = 400;
@@ -242,7 +277,43 @@ export function App() {
     },
     [serverConfig, reloadFromServer],
   );
-  const live = useLiveServices(mode?.capabilities.has("events") ?? false, onConfigEvent);
+  const { toasts, push: pushToast, dismiss, hold, release } = useToasts();
+  const settingsRef = useRef(config.settings);
+  settingsRef.current = config.settings;
+  const onActivity = useCallback(
+    (a) => {
+      if (!shouldNotify(a)) return;
+      pushToast({ id: a.id, title: a.title, detail: a.detail, image: a.image });
+      if (document.hidden && settingsRef.current.desktopNotify !== false && globalThis.Notification?.permission === "granted") {
+        try {
+          new Notification(a.title, { body: a.detail ?? "", icon: a.image || undefined, tag: a.id });
+        } catch {
+          // Some browsers only allow notifications from a service worker.
+        }
+      }
+    },
+    [pushToast],
+  );
+  const live = useLive(mode?.capabilities.has("events") ?? false, onConfigEvent, onActivity);
+  const integrationStates = live?.integrations ?? {};
+  const activity = live?.activity ?? [];
+  const appSignature = (live?.services ?? [])
+    .filter((s) => s.integration)
+    .map((s) => s.id)
+    .concat(Object.keys(integrationStates))
+    .join(",");
+  const [apps, refreshApps] = useApps(mode?.capabilities.has("integrations") ?? false, appSignature);
+  const [connectTarget, setConnectTarget] = useState(null);
+  const [dismissed, setDismissed] = useState(readDismissed);
+  const dismissConnect = () => {
+    const ids = apps.map((a) => a.service);
+    setDismissed(ids);
+    try {
+      browserStorage()?.setItem(DISMISS_KEY, JSON.stringify(ids));
+    } catch {
+      // Only this visit, then.
+    }
+  };
 
   const discard = () => {
     clearDraft();
@@ -262,7 +333,7 @@ export function App() {
 
   const services = useMemo(
     () =>
-      (live ?? config.services)
+      (live?.services ?? config.services)
         .filter((s) => s.state !== "hidden")
         .map((s) => ({ ...s, link: resolveLink(s.urls, location.hostname) })),
     [live, config.services],
@@ -279,7 +350,7 @@ export function App() {
   const health = useMemo(
     () =>
       serverHealth
-        ? Object.fromEntries(services.filter((s) => s.urls).map((s) => [s.id, s.health ?? { status: "unknown" }]))
+        ? Object.fromEntries(services.filter((s) => s.urls && !s.noCheck).map((s) => [s.id, s.health ?? { status: "unknown" }]))
         : browserHealth,
     [serverHealth, services, browserHealth],
   );
@@ -295,6 +366,21 @@ export function App() {
     };
   }, [mode, config.overrides]);
   const system = useSystem(mode?.capabilities.has("system") ?? false);
+  const chips = useMemo(
+    () => Object.fromEntries(Object.entries(integrationStates).map(([id, st]) => [id, chipFor(st)]).filter(([, c]) => c)),
+    [integrationStates],
+  );
+  const unconnected = apps.filter((a) => !a.connected && !dismissed.includes(a.service));
+  const media = (
+    <MediaTiles
+      states={integrationStates}
+      activity={activity}
+      unconnected={unconnected}
+      onConnect={setConnectTarget}
+      onDismissConnect={dismissConnect}
+    />
+  );
+  const connectApp = apps.find((a) => a.service === connectTarget);
 
   if (!state) return <main class="hp-app" aria-busy="true" />;
 
@@ -355,7 +441,9 @@ export function App() {
           sections={sections}
           services={services}
           health={health}
+          chips={chips}
           system={system}
+          media={media}
           search={search}
           empty={empty}
           actions={actions}
@@ -364,8 +452,9 @@ export function App() {
       ) : (
         <>
           {search}
+          <div class="hp-integrations">{media}</div>
           {sections.length > 0
-            ? sections.map((g) => <Group key={g.id} {...g} health={health} actions={actions} />)
+            ? sections.map((g) => <Group key={g.id} {...g} health={health} chips={chips} actions={actions} />)
             : empty}
         </>
       )}
@@ -379,9 +468,16 @@ export function App() {
           onChange={update}
           onExport={() => downloadJson("haepage.json", config)}
           onImport={importFile}
+          apps={apps}
+          onManageApp={(id) => {
+            setSettingsOpen(false);
+            setConnectTarget(id);
+          }}
           onClose={closeSettings}
         />
       )}
+      {connectApp && <ConnectDialog app={connectApp} onClose={() => setConnectTarget(null)} onChanged={refreshApps} />}
+      <Toasts toasts={toasts} dismiss={dismiss} hold={hold} release={release} />
     </main>
   );
 }

@@ -17,10 +17,14 @@ const PATHS = {
   network: "M7 20V5m0 0L3 9m4-4 4 4M17 4v15m0 0 4-4m-4 4-4-4",
   pulse: "M3 12h4l2.5-6 4 12 2.5-6H21",
   inbox: "M3 13h5l1.5 3h5l1.5-3h5M5.5 5h13L21 13v6H3v-6z",
+  calendar: "M4 6h16v14H4zM4 10h16M8 3v4M16 3v4",
+  bell: "M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 20a2 2 0 0 0 4 0",
+  request: "M12 5v14M5 12h14",
+  link: "M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1",
 };
 
 // Fixed colors for system metrics, like the system settings app.
-export const METRIC_HUES = { cpu: 211, memory: 145, disk: 28, network: 265, server: 222 };
+export const METRIC_HUES = { cpu: 211, memory: 145, disk: 28, network: 265, server: 222, play: 280, request: 330, download: 150, calendar: 205, bell: 32, link: 222 };
 
 // A colored icon square, styled like the group icons.
 export function IconTile({ icon, hue }) {

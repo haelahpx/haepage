@@ -4,7 +4,7 @@ import { Icon } from "./Icon.jsx";
 
 const STATUS_TEXT = { up: "Up", down: "Down", unknown: "Not checked" };
 
-export function Card({ service, health }) {
+export function Card({ service, health, chip }) {
   const { link } = service;
   const desc = service.description || (link && hostOf(link.url));
   const title = link
@@ -19,6 +19,11 @@ export function Card({ service, health }) {
         {desc && <p class="hp-card-desc">{desc}</p>}
       </div>
       {service.isNew && <span class="hp-badge hp-badge--new">New</span>}
+      {chip && (
+        <span class={`hp-chip hp-chip--${chip.tone}`} title={chip.title}>
+          {chip.text}
+        </span>
+      )}
       {health && (
         <span
           class={`hp-status hp-status--${health.status}`}
@@ -41,10 +46,10 @@ export function Card({ service, health }) {
 
 // A newly detected service with Add and Hide buttons. The buttons sit
 // beside the card, not inside its link.
-function InboxItem({ service, health, actions }) {
+function InboxItem({ service, health, chip, actions }) {
   return (
     <div class="hp-inbox-item">
-      <Card service={service} health={health} />
+      <Card service={service} health={health} chip={chip} />
       <div class="hp-inbox-actions">
         <button type="button" class="hp-button" onClick={() => actions.accept(service)}>
           Add
@@ -59,7 +64,7 @@ function InboxItem({ service, health, actions }) {
 
 // A group of cards. As a bento tile it widens when it holds more than four
 // services. The Inbox group gets Add and Hide buttons when actions exist.
-export function Group({ id, name, icon, services, health, inbox, actions, tile = false }) {
+export function Group({ id, name, icon, services, health, chips = {}, inbox, actions, tile = false }) {
   let cls = inbox ? "hp-group hp-group--inbox" : "hp-group";
   if (tile) cls += services.length > 4 ? " hp-tile hp-tile--wide" : " hp-tile";
   return (
@@ -76,9 +81,9 @@ export function Group({ id, name, icon, services, health, inbox, actions, tile =
       <div class="hp-grid">
         {services.map((s) =>
           inbox && actions ? (
-            <InboxItem key={s.id} service={s} health={health[s.id]} actions={actions} />
+            <InboxItem key={s.id} service={s} health={health[s.id]} chip={chips[s.id]} actions={actions} />
           ) : (
-            <Card key={s.id} service={s} health={health[s.id]} />
+            <Card key={s.id} service={s} health={health[s.id]} chip={chips[s.id]} />
           ),
         )}
       </div>

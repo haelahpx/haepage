@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "preact/hooks";
+import { KIND_NAMES } from "../integration.js";
 import { BUILTIN_THEMES, isThemeUrl } from "../theme/apply.js";
 
 function Field({ label, children }) {
@@ -10,12 +11,13 @@ function Field({ label, children }) {
   );
 }
 
-export function Settings({ config, engines, serverSaves, error, onChange, onExport, onImport, onClose }) {
+export function Settings({ config, engines, serverSaves, error, apps = [], onManageApp, onChange, onExport, onImport, onClose }) {
   const s = config.settings;
   const set = (patch) => onChange({ ...config, settings: { ...s, ...patch } });
   const customTheme = isThemeUrl(s.theme);
   const [showUrl, setShowUrl] = useState(customTheme);
   const panel = useRef(null);
+  const [permission, setPermission] = useState(globalThis.Notification?.permission ?? "unsupported");
 
   useEffect(() => {
     panel.current?.focus();
@@ -114,6 +116,50 @@ export function Settings({ config, engines, serverSaves, error, onChange, onExpo
             onInput={(e) => set({ customCss: e.currentTarget.value })}
           />
         </Field>
+
+        {apps.length > 0 && (
+          <div class="hp-field">
+            <span>Apps</span>
+            <ul class="hp-connect-list">
+              {apps.map((a) => (
+                <li key={a.service}>
+                  <span>
+                    <strong>{a.name}</strong>
+                    <small>{a.connected ? "Connected" : KIND_NAMES[a.kind]}</small>
+                  </span>
+                  <button type="button" class="hp-button hp-button--quiet" onClick={() => onManageApp(a.service)}>
+                    {a.connected ? "Manage" : "Connect"}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {apps.length > 0 && permission !== "unsupported" && (
+          <div class="hp-field">
+            <span>Desktop notifications</span>
+            {permission === "granted" ? (
+              <select
+                value={s.desktopNotify === false ? "off" : "on"}
+                onChange={(e) => set({ desktopNotify: e.currentTarget.value === "on" })}
+              >
+                <option value="on">On, while this tab is in the background</option>
+                <option value="off">Off</option>
+              </select>
+            ) : permission === "denied" ? (
+              <small class="hp-dialog-help">Blocked in this browser's site settings.</small>
+            ) : (
+              <button
+                type="button"
+                class="hp-button hp-button--quiet"
+                onClick={async () => setPermission(await Notification.requestPermission())}
+              >
+                Allow notifications
+              </button>
+            )}
+          </div>
+        )}
 
         {error && <p class="hp-error">{error}</p>}
 
