@@ -405,6 +405,17 @@
   transform: none;
 }
 
+/* New list: an App Store style capsule, grey with bold blue text. */
+.hp-inbox-add {
+  background: var(--fill);
+  color: var(--accent);
+  letter-spacing: 0.01em;
+}
+
+.hp-inbox-add:hover {
+  background: color-mix(in srgb, var(--accent) 14%, var(--fill));
+}
+
 /* Inbox rows keep the list separators. */
 .hp-bento .hp-inbox-item .hp-card {
   border-bottom: 0;

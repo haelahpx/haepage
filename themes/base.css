@@ -1106,36 +1106,67 @@ body::before {
 /* Inbox: newly detected services with Add and Hide buttons */
 
 /* New (inbox) rows: the actions sit inside the card's right edge, and the
-   card leaves room for them. */
+   card leaves room for them. The status dot is enough here, so the label
+   and chevron some themes show are hidden. Selectors include .hp-bento so
+   they win over themes' bento card padding. */
 .hp-inbox-item {
   position: relative;
   min-width: 0;
 }
 
-.hp-inbox-item > .hp-card {
-  padding-right: 112px;
+.hp-inbox-item > .hp-card,
+.hp-bento .hp-inbox-item > .hp-card {
+  padding-right: 100px;
+}
+
+.hp-inbox-item .hp-status-label,
+.hp-inbox-item .hp-card-chevron,
+.hp-bento .hp-inbox-item .hp-status-label,
+.hp-bento .hp-inbox-item .hp-card-chevron {
+  display: none;
 }
 
 .hp-inbox-actions {
   position: absolute;
   top: 50%;
-  right: 10px;
+  right: 8px;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   transform: translateY(-50%);
 }
 
+/* A quiet pill: the list stays calm, and themes give it their own look. */
 .hp-inbox-add {
-  padding: 6px 16px;
-  font-size: 0.85rem;
+  min-width: 52px;
+  padding: 5px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--surface-variant);
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform calc(150ms * var(--motion)) var(--ease),
+    background-color calc(150ms * var(--motion)) var(--ease);
+}
+
+.hp-inbox-add:active {
+  transform: scale(0.95);
+}
+
+.hp-inbox-add:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .hp-inbox-hide {
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   padding: 0;
   border-radius: 50%;
   color: var(--on-surface-muted);

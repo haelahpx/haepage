@@ -81,7 +81,7 @@ function InboxItem({ service, health, chip, actions }) {
     <div class="hp-inbox-item">
       <Card service={{ ...service, isNew: false }} health={health} chip={chip} />
       <div class="hp-inbox-actions">
-        <button type="button" class="hp-button hp-inbox-add" onClick={() => actions.accept(service)}>
+        <button type="button" class="hp-inbox-add" onClick={() => actions.accept(service)}>
           Add
         </button>
         <button
