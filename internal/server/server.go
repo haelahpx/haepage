@@ -40,6 +40,7 @@ type Options struct {
 	Widgets      *proxy.Widgets        // the API widget proxy; nil turns it off
 	Secrets      *config.Secrets       // secrets.json, for the secrets API; nil turns it off
 	History      *history.History      // 24-hour uptime history; nil turns it off
+	Metrics      bool                  // serve GET /metrics (opt-in)
 }
 
 // SystemReader provides host stats.
@@ -134,6 +135,10 @@ func New(opts Options) http.Handler {
 		capabilities = append(capabilities, "themes.import")
 		mux.HandleFunc("POST /api/themes/import", newLimiter(10).wrap(importTheme(opts.Themes)))
 		mux.HandleFunc("GET /api/themes/remote", remoteTheme(opts.Themes))
+	}
+	if opts.Metrics {
+		capabilities = append(capabilities, "metrics")
+		mux.HandleFunc("GET /metrics", metricsHandler(opts))
 	}
 	mux.HandleFunc("GET /api/ping", ping(opts.Version, capabilities))
 	mux.HandleFunc("GET /api/", func(w http.ResponseWriter, r *http.Request) {

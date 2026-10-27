@@ -11,6 +11,7 @@ import (
 	"testing/fstest"
 
 	"github.com/haelahpx/haepage/internal/history"
+	"github.com/haelahpx/haepage/internal/store"
 	"github.com/haelahpx/haepage/internal/system"
 )
 
@@ -191,5 +192,46 @@ func TestHistory(t *testing.T) {
 	rec := get(t, h, http.MethodGet, "/api/history")
 	if err := json.Unmarshal(rec.Body.Bytes(), &got); err != nil || got.BarMinutes != 30 || *got.Services["manual:nas"].Uptime != 50 {
 		t.Errorf("history = %s", rec.Body)
+	}
+}
+
+func TestMetrics(t *testing.T) {
+	if rec := get(t, New(Options{Static: built()}), http.MethodGet, "/metrics"); strings.Contains(rec.Body.String(), "haepage_") {
+		t.Error("/metrics must be off unless asked for")
+	}
+
+	reg := store.NewRegistry()
+	reg.Set([]store.Service{
+		{ID: "nas", Name: "NAS", State: "pinned"},
+		{ID: "docker:x/y", Name: "Secret", State: "hidden"},
+	})
+	reg.SetHealth("nas", store.Health{Status: "up", MS: 20})
+	reg.SetHealth("docker:x/y", store.Health{Status: "down"})
+	hist := history.Open(filepath.Join(t.TempDir(), "state.json"))
+	hist.Record("nas", "up")
+	h := New(Options{Version: "9.9", Static: built(), Registry: reg, History: hist, System: fakeSystem{stats: system.Stats{Uptime: 60}}, Metrics: true})
+
+	rec := get(t, h, http.MethodGet, "/metrics")
+	if ct := rec.Header().Get("Content-Type"); !strings.HasPrefix(ct, "text/plain; version=0.0.4") {
+		t.Errorf("Content-Type = %q", ct)
+	}
+	body := rec.Body.String()
+	for _, want := range []string{
+		`haepage_build_info{version="9.9"} 1`,
+		`haepage_services 1`,
+		`haepage_service_up{id="nas",name="NAS"} 1`,
+		`haepage_service_response_seconds{id="nas",name="NAS"} 0.02`,
+		`haepage_service_uptime_ratio{id="nas",name="NAS"} 1`,
+		`haepage_host_uptime_seconds 60`,
+	} {
+		if !strings.Contains(body, want+"\n") {
+			t.Errorf("missing %s in\n%s", want, body)
+		}
+	}
+	if strings.Contains(body, "Secret") {
+		t.Error("hidden services must not be reported")
+	}
+	if !strings.Contains(get(t, h, http.MethodGet, "/api/ping").Body.String(), `"metrics"`) {
+		t.Error("ping lacks metrics")
 	}
 }
