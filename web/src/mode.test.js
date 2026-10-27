@@ -37,3 +37,14 @@ test("static mode on network error", async () => {
   };
   assert.equal((await detectMode(fail)).mode, "static");
 });
+
+test("a ping answered from the service worker cache means offline", async () => {
+  const cached = async (url) => {
+    assert.equal(url, "./api/ping");
+    return { ok: true, headers: new Headers({ "x-haepage-offline": "1" }), json: async () => ({ app: "haepage", capabilities: [] }) };
+  };
+  const got = await detectMode(cached);
+  assert.equal(got.mode, "server");
+  assert.equal(got.offline, true);
+  assert.equal((await detectMode(reply(200, { app: "haepage" }))).offline, false);
+});

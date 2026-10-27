@@ -18,6 +18,8 @@ python3 -m http.server 8080
 
 Opening `index.html` straight from disk (`file://`) won't work, because browsers block the request that loads `haepage.json`.
 
+Served over `https://`, the page can be installed as an app and keeps working offline with the last copy of `haepage.json` it saw.
+
 ## Add your services
 
 Everything lives in `haepage.json`, next to `index.html`:

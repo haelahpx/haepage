@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/fs"
 	"log/slog"
+	"mime"
 	"net/http"
 
 	"github.com/haelahpx/haepage/internal/config"
@@ -136,6 +137,11 @@ func systemStats(reader SystemReader) http.HandlerFunc {
 	}
 }
 
+func init() {
+	// Not in Go's built-in table, and distroless has no /etc/mime.types.
+	mime.AddExtensionType(".webmanifest", "application/manifest+json")
+}
+
 func static(fsys fs.FS, dev bool) http.Handler {
 	files := http.FileServerFS(fsys)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -144,7 +150,14 @@ func static(fsys fs.FS, dev bool) http.Handler {
 			notBuilt(w)
 			return
 		}
-		if dev || r.URL.Path == "/" || r.URL.Path == "/index.html" {
+		// The page, the service worker and the manifest must be revalidated,
+		// or a new release would never reach installed apps.
+		revalidate := dev
+		switch r.URL.Path {
+		case "/", "/index.html", "/sw.js", "/manifest.webmanifest":
+			revalidate = true
+		}
+		if revalidate {
 			w.Header().Set("Cache-Control", "no-cache")
 		}
 		files.ServeHTTP(w, r)
