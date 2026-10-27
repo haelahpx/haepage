@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/haelahpx/haepage/internal/config"
+	"github.com/haelahpx/haepage/internal/history"
 	"github.com/haelahpx/haepage/internal/integrations"
 	"github.com/haelahpx/haepage/internal/proxy"
 	"github.com/haelahpx/haepage/internal/store"
@@ -38,6 +39,7 @@ type Options struct {
 	Tailscale    *tailscale.Client     // tailscaled's local API; nil turns the devices panel off
 	Widgets      *proxy.Widgets        // the API widget proxy; nil turns it off
 	Secrets      *config.Secrets       // secrets.json, for the secrets API; nil turns it off
+	History      *history.History      // 24-hour uptime history; nil turns it off
 }
 
 // SystemReader provides host stats.
@@ -97,6 +99,15 @@ func New(opts Options) http.Handler {
 	}
 	if opts.Health {
 		capabilities = append(capabilities, "health.full")
+	}
+	if opts.History != nil {
+		capabilities = append(capabilities, "history")
+		mux.HandleFunc("GET /api/history", func(w http.ResponseWriter, r *http.Request) {
+			writeJSON(w, http.StatusOK, map[string]any{
+				"barMinutes": int(history.Bucket.Minutes()) * history.Buckets / history.Bars,
+				"services":   opts.History.Summaries(),
+			})
+		})
 	}
 	if opts.Widgets != nil {
 		capabilities = append(capabilities, "widgets.proxy")

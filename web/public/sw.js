@@ -37,7 +37,7 @@ self.addEventListener("activate", (event) => {
 });
 
 // Network data that is worth keeping for offline use.
-const DATA = /^(api\/(ping|config|services|system|integrations|wallpapers|themes\/remote)|haepage\.json)$/;
+const DATA = /^(api\/(ping|config|services|system|integrations|wallpapers|history|tailscale\/devices|themes\/remote)|haepage\.json)$/;
 
 self.addEventListener("fetch", (event) => {
   const req = event.request;

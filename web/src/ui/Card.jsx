@@ -1,18 +1,33 @@
+import { useState } from "preact/hooks";
 import { hostOf } from "../links.js";
+import { barStates, formatUptime } from "../uptime.js";
 import { GroupIcon } from "./GroupIcon.jsx";
 import { Icon } from "./Icon.jsx";
 
 const STATUS_TEXT = { up: "Up", down: "Down", unknown: "Not checked" };
 
-export function Card({ service, health, chip }) {
+// `uptime` ({uptime, bars}, Server mode) shows on hover: the description
+// becomes the 24-hour uptime and a strip of half-hour bars appears.
+export function Card({ service, health, chip, uptime }) {
   const { link } = service;
-  const desc = service.description || (link && hostOf(link.url));
+  const [hover, setHover] = useState(false);
+  const showUptime = hover && uptime;
+  const desc = showUptime ? `${formatUptime(uptime.uptime)} up in 24 h` : service.description || (link && hostOf(link.url));
   const title = link
     ? [`${link.url} (${link.kind})`, ...link.others.map((o) => `${o.url} (${o.kind})`)].join("\n")
     : "No URL set";
 
   return (
-    <a class="hp-card" href={link?.url} title={title} aria-disabled={link ? undefined : "true"}>
+    <a
+      class="hp-card"
+      href={link?.url}
+      title={title}
+      aria-disabled={link ? undefined : "true"}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      onFocus={() => setHover(true)}
+      onBlur={() => setHover(false)}
+    >
       <Icon name={service.name} icon={service.icon} />
       <div class="hp-card-body">
         <p class="hp-card-title">{service.name}</p>
@@ -35,6 +50,13 @@ export function Card({ service, health, chip }) {
       {health && health.status !== "unknown" && (
         <span class={`hp-status-label hp-status-label--${health.status}`} aria-hidden="true">
           {STATUS_TEXT[health.status]}
+        </span>
+      )}
+      {showUptime && (
+        <span class="hp-uptime" aria-hidden="true">
+          {barStates(uptime.bars).map((s, i) => (
+            <span key={i} class={`hp-uptime-bar hp-uptime-bar--${s}`} />
+          ))}
         </span>
       )}
       <svg class="hp-card-chevron" viewBox="0 0 8 14" width="8" height="14" aria-hidden="true">
@@ -64,7 +86,7 @@ function InboxItem({ service, health, chip, actions }) {
 
 // A group of cards. As a bento tile it widens when it holds more than four
 // services. The Inbox group gets Add and Hide buttons when actions exist.
-export function Group({ id, name, icon, services, health, chips = {}, inbox, actions, tile = false, widgets = null }) {
+export function Group({ id, name, icon, services, health, chips = {}, uptime = {}, inbox, actions, tile = false, widgets = null }) {
   let cls = inbox ? "hp-group hp-group--inbox" : "hp-group";
   if (tile) cls += services.length > 4 ? " hp-tile hp-tile--wide" : " hp-tile";
   return (
@@ -83,7 +105,7 @@ export function Group({ id, name, icon, services, health, chips = {}, inbox, act
           inbox && actions ? (
             <InboxItem key={s.id} service={s} health={health[s.id]} chip={chips[s.id]} actions={actions} />
           ) : (
-            <Card key={s.id} service={s} health={health[s.id]} chip={chips[s.id]} />
+            <Card key={s.id} service={s} health={health[s.id]} chip={chips[s.id]} uptime={uptime[s.id]} />
           ),
         )}
       </div>
