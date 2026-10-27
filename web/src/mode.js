@@ -2,7 +2,7 @@
 // backend, so a failed, slow or foreign /api/ping means static.
 export async function detectMode(fetchFn = fetch, timeoutMs = 1500) {
   try {
-    const res = await fetchFn("/api/ping", {
+    const res = await fetchFn("./api/ping", {
       signal: AbortSignal.timeout(timeoutMs),
       cache: "no-store",
     });
@@ -13,6 +13,8 @@ export async function detectMode(fetchFn = fetch, timeoutMs = 1500) {
       mode: "server",
       version: ping.version,
       capabilities: new Set(ping.capabilities ?? []),
+      // The service worker answered from its cache: the server is down.
+      offline: res.headers?.get?.("x-haepage-offline") === "1",
     };
   } catch {
     return staticMode();
@@ -20,5 +22,5 @@ export async function detectMode(fetchFn = fetch, timeoutMs = 1500) {
 }
 
 function staticMode() {
-  return { mode: "static", version: null, capabilities: new Set() };
+  return { mode: "static", version: null, capabilities: new Set(), offline: false };
 }

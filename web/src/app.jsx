@@ -185,13 +185,19 @@ function useSystem(enabled) {
 // Follows the server's event stream: services, integration data and
 // activity. EventSource reconnects on its own, and every connection starts
 // with a full snapshot. onActivity sees only new activity, not the snapshot.
-function useLive(enabled, onConfig, onActivity) {
+function useLive(enabled, onConfig, onActivity, onOpen) {
   const [live, setLive] = useState(null);
-  const handlers = useRef({ onConfig, onActivity });
-  handlers.current = { onConfig, onActivity };
+  const handlers = useRef({ onConfig, onActivity, onOpen });
+  handlers.current = { onConfig, onActivity, onOpen };
 
   useEffect(() => {
     if (!enabled) return undefined;
+    // The stream's snapshot replaces this; offline, the service worker's
+    // cached copy is all there is.
+    fetch("./api/services")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((services) => setLive((state) => state ?? applyLive(null, "snapshot", { services })))
+      .catch(() => {});
     const source = new EventSource("./api/events");
     for (const type of LIVE_EVENTS) {
       source.addEventListener(type, (e) => {
@@ -201,6 +207,7 @@ function useLive(enabled, onConfig, onActivity) {
       });
     }
     source.addEventListener("config", (e) => handlers.current.onConfig(JSON.parse(e.data).etag));
+    source.addEventListener("open", () => handlers.current.onOpen?.());
     return () => source.close();
   }, [enabled]);
 
@@ -338,7 +345,14 @@ export function App() {
     },
     [pushToast],
   );
-  const live = useLive(mode?.capabilities.has("events") ?? false, onConfigEvent, onActivity);
+  // The stream connected: if the page loaded from the offline cache, the
+  // server is back, so drop the notice and load the current config.
+  const onLiveOpen = useCallback(() => {
+    if (!mode?.offline) return;
+    setMode((m) => ({ ...m, offline: false }));
+    reloadFromServer().catch(() => {});
+  }, [mode?.offline, reloadFromServer]);
+  const live = useLive(mode?.capabilities.has("events") ?? false, onConfigEvent, onActivity, onLiveOpen);
   const integrationStates = live?.integrations ?? {};
   const activity = live?.activity ?? [];
   const appSignature = (live?.services ?? [])
@@ -475,6 +489,11 @@ export function App() {
       {themeError && (
         <p class="hp-banner hp-banner--error" role="alert">
           {themeError}
+        </p>
+      )}
+      {mode?.offline && (
+        <p class="hp-banner" role="status">
+          Can't reach the Haepage server. Showing what it last sent; changes can't be saved until it's back.
         </p>
       )}
       {notice && (

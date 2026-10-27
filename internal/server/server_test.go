@@ -23,6 +23,9 @@ func built() fstest.MapFS {
 	return fstest.MapFS{
 		"index.html": {Data: []byte("<!doctype html><title>hp</title>")},
 		"app.js":     {Data: []byte("console.log(1)")},
+		"sw.js":      {Data: []byte("self.addEventListener('fetch', () => {})")},
+
+		"manifest.webmanifest": {Data: []byte(`{"name":"Haepage"}`)},
 	}
 }
 
@@ -86,6 +89,21 @@ func TestStaticFiles(t *testing.T) {
 	}
 	if cc := rec.Header().Get("Cache-Control"); cc != "" {
 		t.Errorf("asset Cache-Control = %q, want none outside dev mode", cc)
+	}
+
+	// The service worker and manifest must be revalidated so updates arrive.
+	for path, ctype := range map[string]string{"/sw.js": "text/javascript", "/manifest.webmanifest": "application/manifest+json"} {
+		rec = get(t, h, http.MethodGet, path)
+		if cc := rec.Header().Get("Cache-Control"); rec.Code != http.StatusOK || cc != "no-cache" {
+			t.Errorf("%s = %d, Cache-Control %q", path, rec.Code, cc)
+		}
+		if ct := rec.Header().Get("Content-Type"); !strings.HasPrefix(ct, ctype) {
+			t.Errorf("%s Content-Type = %q, want %s", path, ct, ctype)
+		}
+	}
+	// …without making everything else uncached.
+	if cc := get(t, h, http.MethodGet, "/app.js").Header().Get("Cache-Control"); cc != "" {
+		t.Errorf("asset after sw.js: Cache-Control = %q", cc)
 	}
 }
 

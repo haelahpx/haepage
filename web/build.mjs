@@ -2,7 +2,8 @@
 // into index.html, copies the themes, precompresses everything, and fails
 // when a size budget is exceeded.
 import * as esbuild from "esbuild";
-import { mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { basename, dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { brotliCompressSync, gzipSync } from "node:zlib";
@@ -18,7 +19,7 @@ const budgets = {
   css: { warn: 15 * 1024, fail: 50 * 1024 },
 };
 
-const compressible = /\.(js|css|html|json|svg)$/;
+const compressible = /\.(js|css|html|json|svg|webmanifest)$/;
 
 async function clean() {
   // Keep .gitkeep: go:embed needs web/dist to exist on a fresh clone.
@@ -84,6 +85,33 @@ async function notices() {
   await writeFile(join(dist, "third-party-notices.txt"), await readFile(join(root, "THIRD_PARTY_NOTICES.md")));
 }
 
+// The manifest and icons for installing Haepage as an app.
+async function pwaFiles() {
+  await mkdir(join(dist, "icons"), { recursive: true });
+  await copyFile(join(web, "public/manifest.webmanifest"), join(dist, "manifest.webmanifest"));
+  for (const name of await readdir(join(web, "public/icons"))) {
+    await copyFile(join(web, "public/icons", name), join(dist, "icons", name));
+  }
+}
+
+// The service worker precaches the app shell. Its version is a hash of the
+// shell, so any change to the build installs a new worker.
+async function serviceWorker(jsName) {
+  const shell = [
+    "./",
+    `./assets/${jsName}`,
+    "./manifest.webmanifest",
+    ...(await readdir(join(dist, "themes"))).filter((f) => f.endsWith(".css")).map((f) => `./themes/${f}`),
+    ...(await readdir(join(dist, "icons"))).map((f) => `./icons/${f}`),
+  ];
+  const hash = createHash("sha256");
+  for (const file of [...shell.slice(1), "./index.html"]) hash.update(await readFile(join(dist, file)));
+  const sw = (await readFile(join(web, "public/sw.js"), "utf8"))
+    .replace("__VERSION__", hash.digest("hex").slice(0, 12))
+    .replace("__SHELL__", JSON.stringify(shell));
+  await writeFile(join(dist, "sw.js"), (await esbuild.transform(sw, { minify: true })).code);
+}
+
 async function walk(dir) {
   const files = [];
   for (const entry of await readdir(dir, { withFileTypes: true })) {
@@ -134,4 +162,6 @@ const jsName = await bundle();
 await page(jsName);
 await themes();
 await notices();
+await pwaFiles();
+await serviceWorker(jsName);
 check(await compress(), jsName);

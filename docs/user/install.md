@@ -74,6 +74,14 @@ Every setting is a flag or an environment variable:
 | `--log-level` | `HAEPAGE_LOG_LEVEL` | `info` | `debug`, `info`, `warn` or `error` |
 | `--log-format` | `HAEPAGE_LOG_FORMAT` | `text` | `text` or `json` |
 
+## Install as an app, and offline use
+
+Haepage can be installed like an app on phones and computers (in Chrome or Edge: the install button in the address bar; on iPhone: Share → Add to Home Screen). It opens in its own window without browser bars.
+
+It also keeps working when the server can't be reached: the page shows what the server last sent, with a notice, and catches up by itself when the server is back. Changes can't be saved while it's offline.
+
+Both need the page to be opened over **https://** (or on `localhost`); browsers don't allow them on plain `http://` addresses. The easiest way at home is `tailscale serve`, which gives Haepage an https address on your tailnet.
+
 ## How detection works
 
 - **Docker containers** with a published port appear on their own. Haepage follows Docker's event stream, so a container you start shows up within about a second, and one you stop turns red straight away.
