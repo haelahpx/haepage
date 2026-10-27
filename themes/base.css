@@ -577,12 +577,15 @@ body::before {
   background: var(--ring-track);
 }
 
+/* The fill is full width and slides in from the left, so only transform
+   animates. The bar clips it; --pct (0% to 100%) is set inline. */
 .hp-bar-fill {
   display: block;
   height: 100%;
   border-radius: inherit;
   background: hsl(var(--avatar-hue, 211) 75% 52%);
-  transition: width calc(400ms * var(--motion)) var(--ease);
+  transform: translateX(calc(var(--pct, 0%) - 100%));
+  transition: transform calc(400ms * var(--motion)) var(--ease);
 }
 
 .hp-metric-detail {
@@ -959,6 +962,32 @@ body::before {
 .hp-field-note {
   margin: -8px 0 14px;
   font-size: 0.8rem;
+  color: var(--on-surface-muted);
+}
+
+.hp-checks {
+  margin: -6px 0 14px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--status-unknown) 14%, transparent);
+  font-size: 0.8rem;
+}
+
+.hp-checks--error {
+  background: color-mix(in srgb, var(--status-down) 14%, transparent);
+}
+
+.hp-checks ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+
+.hp-checks li + li {
+  margin-top: 4px;
+}
+
+.hp-checks-line {
+  font-variant-numeric: tabular-nums;
   color: var(--on-surface-muted);
 }
 

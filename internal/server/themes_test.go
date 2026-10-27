@@ -86,3 +86,40 @@ func TestLimiter(t *testing.T) {
 		t.Fatalf("refill not at the configured rate: %v, %v", first, second)
 	}
 }
+
+func TestThemeLint(t *testing.T) {
+	upstream := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/css")
+		w.Write([]byte(".hp-card {\n  transition: height 1s;\n}"))
+	}))
+	defer upstream.Close()
+	h := New(Options{Static: built(), Themes: &themes.Remote{Dir: t.TempDir(), Client: upstream.Client()}})
+	link := upstream.URL + "/slow.css"
+
+	decode := func(rec *httptest.ResponseRecorder) []themes.Finding {
+		var f []themes.Finding
+		if err := json.Unmarshal(rec.Body.Bytes(), &f); err != nil {
+			t.Fatalf("%d %s", rec.Code, rec.Body)
+		}
+		return f
+	}
+	if f := decode(post(t, h, "/api/themes/lint", `{"css":":root{--accent:red}"}`)); len(f) != 0 {
+		t.Errorf("clean CSS: %v", f)
+	}
+	if rec := post(t, h, "/api/themes/lint", `{"url":"`+link+`"}`); rec.Code != http.StatusNotFound {
+		t.Errorf("lint before import = %d", rec.Code)
+	}
+	post(t, h, "/api/themes/import", `{"url":"`+link+`"}`)
+	if f := decode(post(t, h, "/api/themes/lint", `{"url":"`+link+`"}`)); len(f) != 1 || f[0].Rule != "animation" || f[0].Line != 2 {
+		t.Errorf("imported theme: %v", f)
+	}
+
+	// Without theme import the CSS form still works.
+	bare := New(Options{Static: built()})
+	if f := decode(post(t, bare, "/api/themes/lint", `{"css":"@import 'x';"}`)); len(f) != 1 || f[0].Severity != "error" {
+		t.Errorf("bare server: %v", f)
+	}
+	if rec := post(t, bare, "/api/themes/lint", `{"url":"https://x.example/t.css"}`); rec.Code != http.StatusNotFound {
+		t.Errorf("bare server url = %d", rec.Code)
+	}
+}

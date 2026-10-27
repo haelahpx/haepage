@@ -47,6 +47,19 @@ export async function importTheme(url, { refresh = false, fetchFn = fetch } = {}
   return res.json();
 }
 
+// Asks the server to check CSS against the theme budgets. `target` is
+// {url} for an imported theme or {css} for custom CSS. Resolves to a list
+// of {rule, severity, line, message}.
+export async function lintCss(target, { fetchFn = fetch } = {}) {
+  const res = await fetchFn("./api/themes/lint", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(target),
+  });
+  if (!res.ok) throw new Error(await errorOf(res));
+  return res.json();
+}
+
 // Fetches theme CSS. Link themes go through the server when it can import
 // them (importing on first use), and straight from the browser otherwise,
 // which needs the host to allow CORS.

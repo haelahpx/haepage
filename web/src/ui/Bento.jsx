@@ -107,7 +107,7 @@ function Metric({ icon, label, value, pct, detail }) {
         </div>
         {pct != null && (
           <div class="hp-bar" style={{ "--avatar-hue": hue }}>
-            <span class="hp-bar-fill" style={{ width: `${pct}%` }} />
+            <span class="hp-bar-fill" style={{ "--pct": `${pct}%` }} />
           </div>
         )}
         {detail && <span class="hp-metric-detail">{detail}</span>}

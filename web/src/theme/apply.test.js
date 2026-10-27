@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { fetchThemeCss, importTheme, shareLink, themeFromLink } from "./apply.js";
+import { fetchThemeCss, importTheme, lintCss, shareLink, themeFromLink } from "./apply.js";
 
 const reply = (status, body) => ({
   ok: status >= 200 && status < 300,
@@ -54,4 +54,16 @@ test("static mode fetches the link in the browser", async () => {
     throw new TypeError("Failed to fetch");
   };
   await assert.rejects(fetchThemeCss("https://a.example/t.css", { fetchFn: blocked }), /CORS/);
+});
+
+test("lintCss posts the target and returns findings", async () => {
+  let sent;
+  const fetchFn = async (url, opts) => {
+    sent = [url, JSON.parse(opts.body)];
+    return reply(200, '[{"rule":"animation","severity":"warning","line":2,"message":"m"}]');
+  };
+  const findings = await lintCss({ css: ".a{}" }, { fetchFn });
+  assert.deepEqual(sent, ["./api/themes/lint", { css: ".a{}" }]);
+  assert.equal(findings[0].line, 2);
+  await assert.rejects(lintCss({ url: "https://x" }, { fetchFn: async () => reply(404, '{"error":"theme not imported"}') }), /not imported/);
 });

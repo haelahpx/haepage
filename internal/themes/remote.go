@@ -130,7 +130,7 @@ func (r *Remote) Import(ctx context.Context, rawURL string, refresh bool) (Info,
 		}
 	}
 
-	css, err := r.fetch(ctx, rawURL)
+	css, err := Fetch(ctx, r.Client, rawURL)
 	if err != nil {
 		return Info{}, err
 	}
@@ -153,7 +153,10 @@ func (r *Remote) Import(ctx context.Context, rawURL string, refresh bool) (Info,
 	return info, nil
 }
 
-func (r *Remote) fetch(ctx context.Context, rawURL string) ([]byte, error) {
+// Fetch downloads theme CSS with a 10 s limit, refusing responses that
+// aren't CSS or plain text. It reads at most MaxSize+1 bytes, so Validate
+// can tell an oversized file apart.
+func Fetch(ctx context.Context, client *http.Client, rawURL string) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, rawURL, nil)
@@ -161,7 +164,7 @@ func (r *Remote) fetch(ctx context.Context, rawURL string) ([]byte, error) {
 		return nil, fmt.Errorf("%w: %v", ErrInvalid, err)
 	}
 	req.Header.Set("Accept", "text/css,text/plain;q=0.8")
-	res, err := r.Client.Do(req)
+	res, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("could not fetch the theme: %w", err)
 	}

@@ -537,6 +537,7 @@ export function App() {
           detectedFx={detectedFx}
           onUpdateTheme={isThemeUrl(config.settings.theme) ? updateTheme : null}
           serverThemes={serverThemes}
+          canLint={mode?.capabilities.has("themes.lint") ?? false}
           onRemeasureFx={remeasureFx}
           apps={apps}
           onManageApp={(id) => {

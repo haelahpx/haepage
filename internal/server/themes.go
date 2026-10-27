@@ -36,6 +36,39 @@ func importTheme(remote *themes.Remote) http.HandlerFunc {
 	}
 }
 
+// lintTheme checks CSS against the theme budgets: {css} for custom CSS, or
+// {url} for the pinned copy of an imported theme.
+func lintTheme(remote *themes.Remote) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			URL string `json:"url"`
+			CSS string `json:"css"`
+		}
+		if err := json.NewDecoder(io.LimitReader(r.Body, themes.MaxSize+(16<<10))).Decode(&body); err != nil {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "expected {url} or {css}"})
+			return
+		}
+		css := []byte(body.CSS)
+		if body.URL != "" {
+			var err error
+			if remote == nil {
+				err = themes.ErrNotImported
+			} else {
+				css, _, err = remote.Get(body.URL)
+			}
+			if err != nil {
+				writeJSON(w, http.StatusNotFound, map[string]string{"error": "theme not imported"})
+				return
+			}
+		}
+		findings := themes.Lint(css)
+		if findings == nil {
+			findings = []themes.Finding{}
+		}
+		writeJSON(w, http.StatusOK, findings)
+	}
+}
+
 // remoteTheme serves the pinned copy of an imported theme.
 func remoteTheme(remote *themes.Remote) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

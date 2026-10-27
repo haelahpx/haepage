@@ -1,8 +1,57 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import { KIND_NAMES } from "../integration.js";
-import { BUILTIN_THEMES, isThemeUrl, shareLink } from "../theme/apply.js";
+import { BUILTIN_THEMES, isThemeUrl, lintCss, shareLink } from "../theme/apply.js";
 
 const FX_NAMES = { full: "Full", balanced: "Balanced", lite: "Lite" };
+const SHOWN_FINDINGS = 5;
+
+// Lints `target` ({url} or {css}) on the server a moment after it stops
+// changing. A link theme may still be importing, so a 404 is retried.
+function useLint(enabled, target) {
+  const [findings, setFindings] = useState([]);
+  const key = enabled && target ? JSON.stringify(target) : "";
+  useEffect(() => {
+    if (!key) {
+      setFindings([]);
+      return undefined;
+    }
+    let cancelled = false;
+    let timer;
+    const run = (tries) =>
+      lintCss(JSON.parse(key)).then(
+        (f) => !cancelled && setFindings(f),
+        () => {
+          if (!cancelled && tries > 0) timer = setTimeout(() => run(tries - 1), 1500);
+        },
+      );
+    timer = setTimeout(() => run(3), 500);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [key]);
+  return findings;
+}
+
+function ThemeChecks({ findings }) {
+  if (findings.length === 0) return null;
+  const errors = findings.some((f) => f.severity === "error");
+  return (
+    <div class={`hp-checks${errors ? " hp-checks--error" : ""}`} role="status">
+      <strong>
+        {findings.length === 1 ? "1 thing" : `${findings.length} things`} may slow this theme down or stop it working
+      </strong>
+      <ul>
+        {findings.slice(0, SHOWN_FINDINGS).map((f) => (
+          <li key={`${f.line}-${f.rule}-${f.message}`}>
+            {f.line > 0 && <span class="hp-checks-line">Line {f.line}</span>} {f.message}
+          </li>
+        ))}
+      </ul>
+      {findings.length > SHOWN_FINDINGS && <small>and {findings.length - SHOWN_FINDINGS} more</small>}
+    </div>
+  );
+}
 
 function Field({ label, children }) {
   return (
@@ -22,6 +71,7 @@ export function Settings({
   onRemeasureFx,
   onUpdateTheme,
   serverThemes,
+  canLint,
   apps = [],
   onManageApp,
   onChange,
@@ -36,6 +86,8 @@ export function Settings({
   const panel = useRef(null);
   const [permission, setPermission] = useState(globalThis.Notification?.permission ?? "unsupported");
   const [themeNote, setThemeNote] = useState(null);
+  const themeFindings = useLint(canLint && serverThemes && customTheme, { url: s.theme });
+  const cssFindings = useLint(canLint && !!s.customCss?.trim(), { css: s.customCss });
   const flashNote = (text) => {
     setThemeNote(text);
     setTimeout(() => setThemeNote(null), 2500);
@@ -137,6 +189,7 @@ export function Settings({
             </button>
           </p>
         )}
+        {showUrl && customTheme && <ThemeChecks findings={themeFindings} />}
 
         <Field label="Color scheme">
           <select value={s.scheme} onChange={(e) => set({ scheme: e.currentTarget.value })}>
@@ -183,6 +236,7 @@ export function Settings({
             onInput={(e) => set({ customCss: e.currentTarget.value })}
           />
         </Field>
+        <ThemeChecks findings={cssFindings} />
 
         {apps.length > 0 && (
           <div class="hp-field">
