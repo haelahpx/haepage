@@ -187,3 +187,18 @@ func TestSecretsStore(t *testing.T) {
 		t.Error("secret not deleted")
 	}
 }
+
+func TestAllowsPrivateHost(t *testing.T) {
+	c := Config{
+		Settings: Settings{ProxyAllow: []string{"Themes.LAN"}},
+		Services: []Service{{ID: "nas", URLs: URLs{LAN: "http://nas.local:5000", Public: "https://nas.example.com"}}},
+	}
+	for host, want := range map[string]bool{
+		"themes.lan": true, "themes.lan.": true, "nas.local": true, "nas.example.com": true,
+		"router.lan": false, "": false,
+	} {
+		if got := c.AllowsPrivateHost(host); got != want {
+			t.Errorf("AllowsPrivateHost(%q) = %v, want %v", host, got, want)
+		}
+	}
+}

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import { KIND_NAMES } from "../integration.js";
-import { BUILTIN_THEMES, isThemeUrl } from "../theme/apply.js";
+import { BUILTIN_THEMES, isThemeUrl, shareLink } from "../theme/apply.js";
 
 const FX_NAMES = { full: "Full", balanced: "Balanced", lite: "Lite" };
 
@@ -20,6 +20,8 @@ export function Settings({
   error,
   detectedFx,
   onRemeasureFx,
+  onUpdateTheme,
+  serverThemes,
   apps = [],
   onManageApp,
   onChange,
@@ -33,6 +35,11 @@ export function Settings({
   const [showUrl, setShowUrl] = useState(customTheme);
   const panel = useRef(null);
   const [permission, setPermission] = useState(globalThis.Notification?.permission ?? "unsupported");
+  const [themeNote, setThemeNote] = useState(null);
+  const flashNote = (text) => {
+    setThemeNote(text);
+    setTimeout(() => setThemeNote(null), 2500);
+  };
 
   useEffect(() => {
     panel.current?.focus();
@@ -94,6 +101,41 @@ export function Settings({
               onChange={(e) => isThemeUrl(e.currentTarget.value) && set({ theme: e.currentTarget.value })}
             />
           </Field>
+        )}
+        {showUrl && customTheme && (
+          <p class="hp-field-note">
+            {themeNote ??
+              (serverThemes
+                ? "The server keeps a copy, so the theme only changes when you update it."
+                : "Loaded by this browser from the link.")}{" "}
+            {onUpdateTheme && (
+              <button
+                type="button"
+                class="hp-link-button"
+                onClick={() =>
+                  onUpdateTheme().then(
+                    () => flashNote("Updated."),
+                    (err) => flashNote(err.message),
+                  )
+                }
+              >
+                Update
+              </button>
+            )}{" "}
+            ·{" "}
+            <button
+              type="button"
+              class="hp-link-button"
+              onClick={() =>
+                navigator.clipboard?.writeText(shareLink(s.theme)).then(
+                  () => flashNote("Share link copied."),
+                  () => flashNote(shareLink(s.theme)),
+                )
+              }
+            >
+              Copy share link
+            </button>
+          </p>
         )}
 
         <Field label="Color scheme">
