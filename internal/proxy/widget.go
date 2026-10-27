@@ -19,6 +19,7 @@ import (
 
 	"github.com/haelahpx/haepage/internal/config"
 	"github.com/haelahpx/haepage/internal/feeds"
+	"github.com/haelahpx/haepage/internal/rdap"
 )
 
 const (
@@ -51,10 +52,11 @@ type APIOptions struct {
 // FeedOptions are the options of the feed ("rss"), "calendar" and
 // "releases" widgets.
 type FeedOptions struct {
-	URL   string   `json:"url"`
-	Limit int      `json:"limit"`
-	Days  int      `json:"days"`  // calendar: how far ahead
-	Repos []string `json:"repos"` // releases: "owner/name"
+	URL     string   `json:"url"`
+	Limit   int      `json:"limit"`
+	Days    int      `json:"days"`    // calendar: how far ahead
+	Repos   []string `json:"repos"`   // releases: "owner/name"
+	Domains []string `json:"domains"` // expiry: domain names to look up
 }
 
 // Widgets fetches data for the widgets the server answers for: "api",
@@ -66,6 +68,7 @@ type Widgets struct {
 	Config  func() config.Config
 	Secrets interface{ Get(string) string }
 	Client  *http.Client // dial through Guard
+	RDAP    *rdap.Client // domain expiry lookups; nil turns "expiry" domains off
 
 	now         func() time.Time
 	releaseBase string // tests point this at a fake; "https://github.com" otherwise
@@ -88,6 +91,9 @@ func (w *Widgets) Data(ctx context.Context, id string) ([]byte, error) {
 	refresh := widget.Refresh
 	if refresh == 0 {
 		refresh = defaultRefresh
+		if widget.Type == "expiry" {
+			refresh = 3600 // expiry dates change rarely; RDAP answers are cached longer still
+		}
 	}
 	refresh = max(refresh, minRefresh)
 	sum := sha256.Sum256(append([]byte(widget.Type), widget.Options...))
@@ -134,7 +140,7 @@ func (w *Widgets) Data(ctx context.Context, id string) ([]byte, error) {
 }
 
 // serverTypes are the widget types whose data comes through the server.
-var serverTypes = map[string]bool{"api": true, "rss": true, "calendar": true, "releases": true}
+var serverTypes = map[string]bool{"api": true, "rss": true, "calendar": true, "releases": true, "expiry": true}
 
 func (w *Widgets) find(id string) (config.Widget, error) {
 	for _, wd := range w.Config().Widgets {
@@ -195,6 +201,19 @@ func (w *Widgets) answer(ctx context.Context, widget config.Widget, fill func(st
 		out = map[string]any{"events": events}
 	case "releases":
 		out = w.releases(ctx, opts)
+	case "expiry":
+		domains := []rdap.Domain{}
+		for i, name := range opts.Domains {
+			if i == 20 {
+				break
+			}
+			if w.RDAP == nil {
+				domains = append(domains, rdap.Domain{Name: name, Error: "domain lookups are off"})
+				continue
+			}
+			domains = append(domains, w.RDAP.Lookup(ctx, name))
+		}
+		out = map[string]any{"domains": domains}
 	}
 	return json.Marshal(out)
 }

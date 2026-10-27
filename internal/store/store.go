@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"sort"
 	"sync"
+	"time"
 )
 
 // URLs mirror config.URLs; "{host}" stands for the host the visitor used.
@@ -19,9 +20,10 @@ type URLs struct {
 const StoppedReason = "container is not running"
 
 type Health struct {
-	Status string `json:"status"` // up, down, unknown
-	MS     int64  `json:"ms,omitempty"`
-	Reason string `json:"reason,omitempty"`
+	Status      string     `json:"status"` // up, down, unknown
+	MS          int64      `json:"ms,omitempty"`
+	Reason      string     `json:"reason,omitempty"`
+	CertExpires *time.Time `json:"certExpires,omitempty"` // https services: the certificate's end date
 }
 
 // Service is the merged view the browser receives.
@@ -159,12 +161,16 @@ func (r *Registry) SetHealth(id string, h Health) {
 	if !ok {
 		return
 	}
-	if s.Health != nil && s.Health.Status == h.Status && bucket(s.Health.MS) == bucket(h.MS) {
+	if s.Health != nil && s.Health.Status == h.Status && bucket(s.Health.MS) == bucket(h.MS) && sameTime(s.Health.CertExpires, h.CertExpires) {
 		return
 	}
 	s.Health = &h
 	r.services[id] = s
 	r.publishLocked(Event{Type: "health", Data: map[string]any{"id": id, "health": h}})
+}
+
+func sameTime(a, b *time.Time) bool {
+	return (a == nil) == (b == nil) && (a == nil || a.Equal(*b))
 }
 
 // bucket groups latencies so small changes don't flood subscribers.

@@ -1939,3 +1939,50 @@ li:hover > .hp-w-remove,
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+
+/* Expiry widget */
+.hp-w-expiry ul {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hp-w-expiry li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  padding: 5px 0;
+  font-size: 0.9rem;
+}
+
+.hp-w-expiry-kind {
+  flex: none;
+  width: 3.6rem;
+  font-size: 0.75rem;
+  color: var(--on-surface-muted);
+}
+
+.hp-w-expiry-name {
+  overflow: hidden;
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.hp-w-expiry small {
+  flex: none;
+  margin-left: auto;
+  color: var(--on-surface-muted);
+}
+
+.hp-w-expiry .is-soon small {
+  color: var(--status-down);
+  font-weight: 600;
+}
+
+.hp-w-system .is-hot strong {
+  color: var(--status-down);
+}

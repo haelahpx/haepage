@@ -26,6 +26,7 @@ import (
 	"github.com/haelahpx/haepage/internal/history"
 	"github.com/haelahpx/haepage/internal/integrations"
 	"github.com/haelahpx/haepage/internal/proxy"
+	"github.com/haelahpx/haepage/internal/rdap"
 	"github.com/haelahpx/haepage/internal/server"
 	"github.com/haelahpx/haepage/internal/store"
 	"github.com/haelahpx/haepage/internal/system"
@@ -174,7 +175,12 @@ func run(args []string) error {
 	opts.Themes = &themes.Remote{Dir: filepath.Join(*dataDir, "cache", "themes"), Client: guard.Client(10 * time.Second)}
 	opts.Secrets = secrets
 	opts.History = hist
-	opts.Widgets = &proxy.Widgets{Config: cfg.Config, Secrets: secrets, Client: guard.Client(10 * time.Second)}
+	opts.Widgets = &proxy.Widgets{
+		Config:  cfg.Config,
+		Secrets: secrets,
+		Client:  guard.Client(10 * time.Second),
+		RDAP:    &rdap.Client{HTTP: guard.Client(10 * time.Second)},
+	}
 
 	srv := &http.Server{
 		Addr:              *addr,

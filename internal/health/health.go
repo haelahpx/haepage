@@ -4,6 +4,8 @@ package health
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
+	"errors"
 	"fmt"
 	"io"
 	"math/rand/v2"
@@ -181,23 +183,26 @@ func Check(ctx context.Context, t Target) store.Health {
 	}
 	start := time.Now()
 	var err error
+	var cert *time.Time
 	switch t.Type {
 	case "tcp":
 		err = checkTCP(ctx, t.URL)
 	default:
-		err = checkHTTP(ctx, t)
+		cert, err = checkHTTP(ctx, t)
 	}
 	ms := time.Since(start).Milliseconds()
 	if err != nil {
-		return store.Health{Status: "down", MS: ms, Reason: err.Error()}
+		return store.Health{Status: "down", MS: ms, Reason: err.Error(), CertExpires: cert}
 	}
-	return store.Health{Status: "up", MS: ms}
+	return store.Health{Status: "up", MS: ms, CertExpires: cert}
 }
 
-func checkHTTP(ctx context.Context, t Target) error {
+// checkHTTP also returns when an https service's certificate ends, read
+// from the same connection (or from the error when it has already ended).
+func checkHTTP(ctx context.Context, t Target) (*time.Time, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, t.URL, nil)
 	if err != nil {
-		return fmt.Errorf("bad URL")
+		return nil, fmt.Errorf("bad URL")
 	}
 	req.Header.Set("User-Agent", "Haepage health check")
 	client := plainClient
@@ -206,19 +211,29 @@ func checkHTTP(ctx context.Context, t Target) error {
 	}
 	res, err := client.Do(req)
 	if err != nil {
-		return fmt.Errorf("no response")
+		var invalid x509.CertificateInvalidError
+		if errors.As(err, &invalid) && invalid.Reason == x509.Expired && invalid.Cert != nil {
+			end := invalid.Cert.NotAfter
+			return &end, fmt.Errorf("certificate expired")
+		}
+		return nil, fmt.Errorf("no response")
 	}
 	io.Copy(io.Discard, io.LimitReader(res.Body, 4<<10))
 	res.Body.Close()
+	var cert *time.Time
+	if res.TLS != nil && len(res.TLS.PeerCertificates) > 0 {
+		end := res.TLS.PeerCertificates[0].NotAfter
+		cert = &end
+	}
 	// Any answer below 500 means the service is running, even a login
 	// page (401) or a missing path (404), unless an exact status is set.
 	if t.Expect != 0 && res.StatusCode != t.Expect {
-		return fmt.Errorf("HTTP %d, expected %d", res.StatusCode, t.Expect)
+		return cert, fmt.Errorf("HTTP %d, expected %d", res.StatusCode, t.Expect)
 	}
 	if t.Expect == 0 && res.StatusCode >= 500 {
-		return fmt.Errorf("HTTP %d", res.StatusCode)
+		return cert, fmt.Errorf("HTTP %d", res.StatusCode)
 	}
-	return nil
+	return cert, nil
 }
 
 // checkTCP dials host:port taken from a URL or a bare address.

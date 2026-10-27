@@ -1,8 +1,10 @@
 package system
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 )
@@ -34,6 +36,7 @@ func copyHost(t *testing.T) string {
 
 func write(t *testing.T, root, rel, data string) {
 	t.Helper()
+	os.MkdirAll(filepath.Dir(filepath.Join(root, rel)), 0o755)
 	if err := os.WriteFile(filepath.Join(root, rel), []byte(data), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -126,5 +129,43 @@ func TestBadProcStat(t *testing.T) {
 	write(t, root, "proc/stat", "garbage\n")
 	if _, err := (&Sampler{Root: root, wait: func(time.Duration) {}}).Read(); err == nil {
 		t.Error("want an error for an unreadable /proc/stat")
+	}
+}
+
+func TestSensors(t *testing.T) {
+	root := t.TempDir()
+	write(t, root, "sys/class/hwmon/hwmon0/name", "ACAD\n") // no temperatures
+	write(t, root, "sys/class/hwmon/hwmon1/name", "coretemp\n")
+	write(t, root, "sys/class/hwmon/hwmon1/temp1_input", "61000\n")
+	write(t, root, "sys/class/hwmon/hwmon1/temp1_crit", "100000\n")
+	write(t, root, "sys/class/hwmon/hwmon1/temp2_input", "67500\n")
+	write(t, root, "sys/class/hwmon/hwmon1/temp2_crit", "100000\n")
+	write(t, root, "sys/class/hwmon/hwmon2/name", "nvme\n")
+	write(t, root, "sys/class/hwmon/hwmon2/temp1_input", "44850\n")
+	write(t, root, "sys/class/hwmon/hwmon2/temp1_max", "84850\n")
+	write(t, root, "sys/class/hwmon/hwmon3/name", "spd5118\n")
+	write(t, root, "sys/class/hwmon/hwmon3/temp1_input", "40000\n")
+	write(t, root, "sys/class/hwmon/hwmon4/name", "spd5118\n")
+	write(t, root, "sys/class/hwmon/hwmon4/temp1_input", "41250\n")
+	write(t, root, "sys/class/hwmon/hwmon5/name", "weird_sensor\n")
+	write(t, root, "sys/class/hwmon/hwmon5/temp1_input", "-5\n") // nonsense values are skipped
+	write(t, root, "sys/class/hwmon/hwmon6/name", "fancy_chip\n")
+	write(t, root, "sys/class/hwmon/hwmon6/temp1_input", "30000\n")
+
+	got := (&Sampler{Root: root}).sensors()
+	var desc []string
+	for _, s := range got {
+		d := fmt.Sprintf("%s=%.1f", s.Name, s.C)
+		if s.CritC != nil {
+			d += fmt.Sprintf("/%.1f", *s.CritC)
+		}
+		desc = append(desc, d)
+	}
+	want := "CPU=67.5/100.0 NVMe drive=44.9/84.9 Memory=40.0 Memory 2=41.3 fancy_chip=30.0"
+	if strings.Join(desc, " ") != want {
+		t.Errorf("sensors = %s\nwant      %s", strings.Join(desc, " "), want)
+	}
+	if empty := (&Sampler{Root: t.TempDir()}).sensors(); empty == nil || len(empty) != 0 {
+		t.Errorf("no hwmon = %#v, want an empty list", empty)
 	}
 }

@@ -121,7 +121,7 @@
         "id": { "$ref": "#/$defs/id" },
         "type": {
           "type": "string",
-          "pattern": "^(clock|weather|system|bookmarks|notes|todo|rss|calendar|releases|api|custom:[a-z0-9-]+)$"
+          "pattern": "^(clock|weather|system|bookmarks|notes|todo|rss|calendar|releases|expiry|temperature|disks|api|custom:[a-z0-9-]+)$"
         },
         "title": { "type": "string" },
         "area": { "type": "string" },
