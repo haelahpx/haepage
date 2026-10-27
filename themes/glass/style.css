@@ -1,7 +1,9 @@
 /* Glass theme. theme-api 1
    Light: near-white tiles with soft depth. Dark: translucent glass on navy.
    Depth comes from fills, hairlines and shadows, not live blur; blur is
-   used only on overlays and turned off on the lite tier. */
+   used only on overlays. Tiers: full blurs and saturates overlays and
+   presses with a spring; balanced uses a smaller blur without
+   saturation; lite has no blur, opaque overlays and no motion. */
 
 :root {
   --haepage-theme: "glass";
@@ -26,6 +28,7 @@
   --shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 6px 18px rgba(15, 23, 42, 0.05);
   --tile-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 32px rgba(15, 23, 42, 0.06);
   --blur: 28px;
+  --glass-filter: blur(var(--blur)) saturate(1.8);
   --status-up: #34c759;
   --status-down: #ff3b30;
   --status-unknown: #aeaeb2;
@@ -74,6 +77,16 @@
 
 .hp-card {
   box-shadow: var(--shadow);
+  transition:
+    transform calc(260ms * var(--motion)) cubic-bezier(0.3, 1.4, 0.6, 1),
+    background-color calc(160ms * var(--motion)) var(--ease);
+}
+
+/* Press: a small spring. Listed with .hp-bento to beat base.css's bento
+   hover reset, which would cancel it. */
+.hp-card:active,
+.hp-bento .hp-card:active {
+  transform: scale(0.98);
 }
 
 /* Icons: rounded squares with a lit top edge. */
@@ -107,7 +120,6 @@
 /* Bento: hero */
 
 .hp-tile--hero {
-  overflow: hidden;
   background:
     linear-gradient(90deg, var(--hero-base) 36%, transparent 72%),
     var(--hero-hills) right bottom / auto 80% no-repeat,
@@ -280,12 +292,13 @@
 
 :root:not([data-fx="lite"]) .hp-search-results,
 :root:not([data-fx="lite"]) .hp-drawer {
-  -webkit-backdrop-filter: blur(var(--blur)) saturate(1.8);
-  backdrop-filter: blur(var(--blur)) saturate(1.8);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
 }
 
 :root[data-fx="balanced"] {
   --blur: 16px;
+  --glass-filter: blur(var(--blur));
 }
 
 .hp-search-results {
@@ -300,8 +313,13 @@
 /* Buttons */
 
 .hp-button {
+  transition: transform calc(200ms * var(--motion)) cubic-bezier(0.3, 1.4, 0.6, 1);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0) 55%), var(--accent);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.hp-button:active {
+  transform: scale(0.96);
 }
 
 .hp-button--quiet {
@@ -325,13 +343,30 @@
   background: var(--fill);
 }
 
-/* Lite: flat background, no glow. */
+/* Lite: flat background, no glow, no motion. Overlays turn opaque,
+   since without blur the page would show through them. */
 :root[data-fx="lite"] {
   --bg-image: none;
+  --overlay: #fafafc;
+}
+
+:root[data-fx="lite"][data-scheme="dark"] {
+  --overlay: #1c2130;
 }
 
 :root[data-fx="lite"] .hp-status {
   box-shadow: none;
+}
+
+:root[data-fx="lite"] .hp-card,
+:root[data-fx="lite"] .hp-button {
+  transition: background-color calc(150ms * var(--motion)) var(--ease);
+}
+
+:root[data-fx="lite"] .hp-card:active,
+:root[data-fx="lite"] .hp-bento .hp-card:active,
+:root[data-fx="lite"] .hp-button:active {
+  transform: none;
 }
 
 /* Inbox rows keep the list separators. */
@@ -351,8 +386,8 @@
 
 :root:not([data-fx="lite"]) .hp-dialog,
 :root:not([data-fx="lite"]) .hp-toast {
-  -webkit-backdrop-filter: blur(var(--blur)) saturate(1.8);
-  backdrop-filter: blur(var(--blur)) saturate(1.8);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
 }
 
 .hp-tile--media .hp-media + .hp-media {

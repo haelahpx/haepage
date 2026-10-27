@@ -134,7 +134,6 @@
 
 /* Hero: primary container with a big two-tone clock. */
 .hp-tile--hero {
-  overflow: hidden;
   color: var(--on-primary-container);
   background:
     linear-gradient(90deg, var(--primary-container) 45%, transparent 80%),
